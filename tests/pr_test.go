@@ -10,7 +10,7 @@ import (
 
 // Use existing resource group
 const resourceGroup = "geretain-test-resources"
-const advancedExampleDir = "examples/advanced"
+const crnParserExample = "examples/crn-parser"
 
 func setupOptions(t *testing.T, prefix string, dir string) *testhelper.TestOptions {
 	options := testhelper.TestOptionsDefaultWithVars(&testhelper.TestOptions{
@@ -22,10 +22,10 @@ func setupOptions(t *testing.T, prefix string, dir string) *testhelper.TestOptio
 	return options
 }
 
-func TestRunAdvancedExample(t *testing.T) {
+func TestRunCRNParserExample(t *testing.T) {
 	t.Parallel()
 
-	options := setupOptions(t, "mod-template", advancedExampleDir)
+	options := setupOptions(t, "crn-parser", crnParserExample)
 
 	output, err := options.RunTestConsistency()
 	assert.Nil(t, err, "This should not have errored")
@@ -35,7 +35,7 @@ func TestRunAdvancedExample(t *testing.T) {
 func TestRunUpgradeExample(t *testing.T) {
 	t.Parallel()
 
-	options := setupOptions(t, "mod-template-upg", advancedExampleDir)
+	options := setupOptions(t, "crn-parser-upg", crnParserExample)
 
 	output, err := options.RunTestUpgrade()
 	if !options.UpgradeTestSkipped {
