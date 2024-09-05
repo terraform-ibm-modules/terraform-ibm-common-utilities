@@ -11,6 +11,10 @@ module "crn_parser" {
 }
 ```
 
+### Required IAM access policies
+
+No permissions are needed to run this module.
+
 <!-- The following content is automatically populated by the pre-commit hook -->
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ### Requirements

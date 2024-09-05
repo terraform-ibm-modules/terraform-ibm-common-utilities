@@ -20,10 +20,9 @@ For information, see "Module names and descriptions" at
 https://terraform-ibm-modules.github.io/documentation/#/implementation-guidelines?id=module-names-and-descriptions
 -->
 
-This module serves as a repository to hold common Terraform utilities used in other modules in the terraform-ibm-modules organization.
+This repository serves as a repository to hold common Terraform utilities used in other modules in the terraform-ibm-modules organization.
 
-Each utility is placed under the [modules](./modules) directory so they may be individually referenced within a Terraform project, see the [Overview](#overview) section for a list of available submodules.
-
+Each utility is placed under the [modules](./modules) directory so they may be individually referenced within a Terraform project, see the [Overview](#overview) section below for a list of available submodules.
 
 <!-- The following content is automatically populated by the pre-commit hook -->
 <!-- BEGIN OVERVIEW HOOK -->
@@ -36,36 +35,7 @@ Each utility is placed under the [modules](./modules) directory so they may be i
 * [Contributing](#contributing)
 <!-- END OVERVIEW HOOK -->
 
-
-<!--
-If this repo contains any reference architectures, uncomment the heading below and link to them.
-(Usually in the `/reference-architectures` directory.)
-See "Reference architecture" in the public documentation at
-https://terraform-ibm-modules.github.io/documentation/#/implementation-guidelines?id=reference-architecture
--->
-<!-- ## Reference architectures -->
-
-
-<!-- Replace this heading with the name of the root level module (the repo name) -->
-## terraform-ibm-common-utilities
-
-### Usage
-
-<!--
-Add an example of the use of the module in the following code block.
-
-Use real values instead of "var.<var_name>" or other placeholder values
-unless real values don't help users know what to change.
--->
-
-```hcl
-module "crn_parser" {
-  source = "git::https://github.com/terraform-ibm-modules/terraform-ibm-common-utilities//modules/crn-parser?ref=vX.Y.Z" # Replace "X.Y.Z" to lock into a specific release
-  crn = "crn:v1:bluemix:public:kms:us-south:a/9f9af00a96104f49b6509aa715f9d6a5:44f9c10d-99f5-4547-9e9f-2a1c84b5f0a4:key:f6c9f6d0-92f6-437a-b97c-4b617cb3d320"
-}
-```
-
-### Required IAM access policies
+<!-- ### Required IAM access policies -->
 
 <!-- PERMISSIONS REQUIRED TO RUN MODULE
 If this module requires permissions, uncomment the following block and update
@@ -93,34 +63,6 @@ statement instead the previous block.
 -->
 
 <!-- No permissions are needed to run this module. -->
-
-Any permissions that are needed will be listed in the submodules relevant README.
-
-
-<!-- The following content is automatically populated by the pre-commit hook -->
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
-### Requirements
-
-| Name | Version |
-|------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3.0 |
-
-### Modules
-
-No modules.
-
-### Resources
-
-No resources.
-
-### Inputs
-
-No inputs.
-
-### Outputs
-
-No outputs.
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 
 <!-- Leave this section as is so that your module has a link to local development environment set-up steps for contributors to follow -->
 ## Contributing
