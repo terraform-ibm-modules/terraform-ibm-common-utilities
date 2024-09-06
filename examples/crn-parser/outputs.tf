@@ -2,11 +2,6 @@
 # Outputs
 ########################################################################################################################
 
-output "key_protect_crn" {
-  value       = module.key_protect.key_protect_crn
-  description = "The CRN of the Key Protect instance"
-}
-
 output "parsed_crn_ctype" {
   value       = module.crn_parser.ctype
   description = "The parsed `ctype` field of the Key Protect instance CRN"

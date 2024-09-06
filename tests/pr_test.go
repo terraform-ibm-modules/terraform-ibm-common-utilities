@@ -8,16 +8,12 @@ import (
 	"github.com/terraform-ibm-modules/ibmcloud-terratest-wrapper/testhelper"
 )
 
-// Use existing resource group
-const resourceGroup = "geretain-test-resources"
 const crnParserExample = "examples/crn-parser"
 
-func setupOptions(t *testing.T, prefix string, dir string) *testhelper.TestOptions {
-	options := testhelper.TestOptionsDefaultWithVars(&testhelper.TestOptions{
-		Testing:       t,
-		TerraformDir:  dir,
-		Prefix:        prefix,
-		ResourceGroup: resourceGroup,
+func setupOptions(t *testing.T, dir string) *testhelper.TestOptions {
+	options := testhelper.TestOptionsDefault(&testhelper.TestOptions{
+		Testing:      t,
+		TerraformDir: dir,
 	})
 	return options
 }
@@ -25,7 +21,10 @@ func setupOptions(t *testing.T, prefix string, dir string) *testhelper.TestOptio
 func TestRunCRNParserExample(t *testing.T) {
 	t.Parallel()
 
-	options := setupOptions(t, "crn-parser", crnParserExample)
+	options := setupOptions(t, crnParserExample)
+	options.TerraformVars = map[string]interface{}{
+		"crn": "crn:version:cname:ctype:service-name:location:scope:service-instance:resource-type:resource",
+	}
 
 	output, err := options.RunTestConsistency()
 	assert.Nil(t, err, "This should not have errored")

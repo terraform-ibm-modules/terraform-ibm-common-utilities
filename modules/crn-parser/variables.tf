@@ -4,5 +4,5 @@
 
 variable "crn" {
   type        = string
-  description = "The CRN to be parsed."
+  description = "The CRN to parse."
 }

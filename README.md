@@ -20,9 +20,9 @@ For information, see "Module names and descriptions" at
 https://terraform-ibm-modules.github.io/documentation/#/implementation-guidelines?id=module-names-and-descriptions
 -->
 
-This repository serves as a repository to hold common Terraform utilities used in other modules in the terraform-ibm-modules organization.
+Common Terraform utilities that are used in other modules in the terraform-ibm-modules GitHub organization.
 
-Each utility is placed under the [modules](./modules) directory so they may be individually referenced within a Terraform project, see the [Overview](#overview) section below for a list of available submodules.
+You can reference any utility in this repo from your Terraform project by pointing to the utility in the [modules](./modules) directory. For a list of available submodules, see the Submodules in the [Overview](#overview) section.
 
 <!-- The following content is automatically populated by the pre-commit hook -->
 <!-- BEGIN OVERVIEW HOOK -->

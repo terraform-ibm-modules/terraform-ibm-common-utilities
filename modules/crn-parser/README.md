@@ -1,6 +1,6 @@
 # Terraform IBM common utilities CRN parser
 
-This module takes a CRN string input and returns each of the fields in the provided CRN as a separate output, for more information on what each of these fields represent see <https://cloud.ibm.com/docs/account?topic=account-crn>.
+This module takes a CRN string as input, parses the CRN, and returns the segments in the CRN as separate output fields. For more information about what each CRN segment represents, see [Cloud Resource Names](https://cloud.ibm.com/docs/account?topic=account-crn).
 
 ## Usage
 
@@ -35,7 +35,7 @@ No resources.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_crn"></a> [crn](#input\_crn) | The CRN to be parsed. | `string` | n/a | yes |
+| <a name="input_crn"></a> [crn](#input\_crn) | The CRN to parse. | `string` | n/a | yes |
 
 ### Outputs
 
