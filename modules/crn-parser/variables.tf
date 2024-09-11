@@ -1,8 +1,8 @@
 ########################################################################################################################
-# Provider config
+# Input Variables
 ########################################################################################################################
 
-provider "ibm" {
-  ibmcloud_api_key = var.ibmcloud_api_key
-  region           = var.region
+variable "crn" {
+  type        = string
+  description = "The CRN to parse."
 }
