@@ -6,8 +6,9 @@ This module takes a CRN string as input, parses the CRN, and returns the segment
 
 ```hcl
 module "crn_parser" {
-  source = "git::https://github.com/terraform-ibm-modules/terraform-ibm-common-utilities//modules/crn-parser?ref=vX.Y.Z" # Replace "X.Y.Z" to lock into a specific release
-  crn = "crn:v1:bluemix:public:kms:us-south:a/9f9af00a96104f49b6509aa715f9d6a5:44f9c10d-99f5-4547-9e9f-2a1c84b5f0a4:key:f6c9f6d0-92f6-437a-b97c-4b617cb3d320"
+  source  = "terraform-ibm-modules/common-utilities/ibm//modules/crn-parser"
+  version = "X.Y.Z" # Replace "X.Y.Z" to lock into a specific release
+  crn     = "crn:v1:bluemix:public:kms:us-south:a/9f9af00a96104f49b6509aa715f9d6a5:44f9c10d-99f5-4547-9e9f-2a1c84b5f0a4:key:f6c9f6d0-92f6-437a-b97c-4b617cb3d320"
 }
 ```
 
