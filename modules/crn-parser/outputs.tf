@@ -36,3 +36,8 @@ output "resource" {
   value       = local.resource == "" ? null : local.resource
   description = "CRN `resource` field"
 }
+
+output "account_id" {
+  value       = local.account_id == "" ? null : local.account_id
+  description = "Account ID parsed from the CRN `scope` field"
+}

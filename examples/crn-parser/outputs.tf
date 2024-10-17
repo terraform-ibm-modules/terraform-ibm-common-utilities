@@ -36,3 +36,8 @@ output "parsed_crn_resource" {
   value       = module.crn_parser.resource
   description = "The parsed `resource` field of the Key Protect instance CRN"
 }
+
+output "parsed_crn_account_id" {
+  value       = module.crn_parser.account_id
+  description = "The parsed Account ID from the `scope` field of the Key Protect instance CRN"
+}

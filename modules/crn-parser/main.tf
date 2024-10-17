@@ -11,4 +11,5 @@ locals {
   service_instance = length(local.split_crn) > 7 ? local.split_crn[7] : null
   resource_type    = length(local.split_crn) > 8 ? local.split_crn[8] : null
   resource         = length(local.split_crn) > 9 ? local.split_crn[9] : null
+  account_id       = length(local.split_crn) > 6 ? (length(regexall("^a\\/.+$", local.split_crn[6])) > 0 ? split("/", local.split_crn[6])[1] : null) : null
 }
