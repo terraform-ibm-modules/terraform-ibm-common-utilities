@@ -42,6 +42,7 @@ No resources.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_account_id"></a> [account\_id](#output\_account\_id) | Account ID parsed from the CRN `scope` field |
 | <a name="output_ctype"></a> [ctype](#output\_ctype) | CRN `ctype` field |
 | <a name="output_region"></a> [region](#output\_region) | CRN `region` field |
 | <a name="output_resource"></a> [resource](#output\_resource) | CRN `resource` field |

@@ -23,7 +23,7 @@ func TestRunCRNParserExample(t *testing.T) {
 
 	options := setupOptions(t, crnParserExample)
 	options.TerraformVars = map[string]interface{}{
-		"crn": "crn:version:cname:ctype:service-name:location:scope:service-instance:resource-type:resource",
+		"crn": "crn:version:cname:ctype:service-name:location:a/scope:service-instance:resource-type:resource",
 	}
 
 	output, err := options.RunTestConsistency()
