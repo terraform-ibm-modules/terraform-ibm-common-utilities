@@ -5,18 +5,6 @@
 
 locals {
 
-  # Filter images by OS only.
-  os_images = [
-    for image in data.ibm_is_images.available_images.images : image
-    if strcontains(lower(image.os), var.operating_system)
-  ]
-
-  # Filter images by architecture only.
-  arch_images = [
-    for image in data.ibm_is_images.available_images.images : image
-    if strcontains(lower(image.name), var.architecture)
-  ]
-
   # Filter images by both OS and architecture.
   filtered_arch_images = [
     for image in data.ibm_is_images.available_images.images : image

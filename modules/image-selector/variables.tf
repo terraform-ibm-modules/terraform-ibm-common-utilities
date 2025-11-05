@@ -2,20 +2,8 @@
 # Input Variables
 ########################################################################################################################
 
-variable "ibmcloud_api_key" {
-  description = "The IBM Cloud API Key."
-  sensitive   = true
-  type        = string
-}
-
-variable "region" {
-  description = "Region to get the image information as VPC infrastructure services are a regional specific based endpoint. Defaults to `us-south`."
-  type        = string
-  default     = "us-south"
-}
-
 variable "visibility" {
-  description = "The visibility of the image. Defaults to `public`."
+  description = "Defines the visibility level of the image. Accepted values are `public` and `private`. Defaults to `public`."
   type        = string
   default     = "public"
 
@@ -37,7 +25,7 @@ variable "image_status" {
 }
 
 variable "architecture" {
-  description = "The architecture for which the image is to be fetched. Defaults to `amd64`."
+  description = "Defines the target system architecture for image selection. The default is `amd64`. Valid options are `amd64` and `s390x`."
   type        = string
   default     = "amd64"
 
@@ -48,9 +36,14 @@ variable "architecture" {
 }
 
 variable "operating_system" {
-  description = "The operating system for which the image id should be retrieved. Only ubuntu images are supported currently."
+  description = "The operating system for image selection. Only `ubuntu` images are supported currently."
   type        = string
   default     = "ubuntu"
+
+  validation {
+    condition     = var.operating_system == "ubuntu"
+    error_message = "Only 'ubuntu' is supported as a valid operating system."
+  }
 }
 
 variable "is_catalog_managed" {

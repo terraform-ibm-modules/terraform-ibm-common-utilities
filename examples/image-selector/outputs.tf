@@ -2,7 +2,17 @@
 # Outputs
 ########################################################################################################################
 
-output "latest_image_name_by_os_and_architecture" {
-  value       = module.image_lookup.latest_image_name_by_os_and_architecture
-  description = "The name of the most recent image."
+output "filtered_image_names" {
+  value       = module.image_lookup.filtered_image_names
+  description = "List of all image names."
+}
+
+output "latest_image_id" {
+  value       = module.image_lookup.latest_image_id
+  description = "Id of the most recent image."
+}
+
+output "latest_image_name" {
+  value       = module.image_lookup.latest_image_name
+  description = "Name of the most recent image."
 }
