@@ -2,7 +2,7 @@
 
 This Terraform module retrieves the most recent IBM Cloud VPC image based on a specified operating system and architecture.
 
-This module enables filtering of IBM Cloud images based on operating system and system architecture. It currently supports `ubuntu` as the operating system and `amd64` or `s390x` as valid architecture options. 
+This module enables filtering of IBM Cloud images based on operating system and system architecture. It currently supports `ubuntu` as the operating system and `amd64` or `s390x` as valid architecture options.
 
 By applying semantic sorting to image names, the module identifies and returns the most recent image available. The resulting image ID and name can be seamlessly integrated into downstream resources such as virtual server instance provisioning.
 
@@ -14,7 +14,7 @@ By applying semantic sorting to image names, the module identifies and returns t
 module "filtered_images" {
   source           = "terraform-ibm-modules/common-utilities/ibm//modules/image-selector"
   version          = "X.Y.Z" # Replace "X.Y.Z" to lock into a specific release
-  ibmcloud_api_key = "xxx123xxxxx" # Provide valid IBM Cloud API key
+  ibmcloud_api_key = "xxx123xxxxx" # Provide valid IBM Cloud API key # pragma: allowlist secret
   region           = "us-south" # Region for which images are fetched.
   architecture     = "amd64" # OS Architecture for filtering.
 }
