@@ -11,7 +11,7 @@ import (
 )
 
 const crnParserExample = "examples/crn-parser"
-const getImagesExample = "examples/image-selector"
+const getImagesExample = "examples/vsi-image-selector"
 
 var validRegions = []string{
 	"us-south",

@@ -30,10 +30,10 @@ You can reference any utility in this repo from your Terraform project by pointi
 * [terraform-ibm-common-utilities](#terraform-ibm-common-utilities)
 * [Submodules](./modules)
     * [crn-parser](./modules/crn-parser)
-    * [image-selector](./modules/image-selector)
+    * [vsi-image-selector](./modules/vsi-image-selector)
 * [Examples](./examples)
     * [CRN parser example](./examples/crn-parser)
-    * [VSI image selector example](./examples/image-selector)
+    * [VSI image selector example](./examples/vsi-image-selector)
 * [Contributing](#contributing)
 <!-- END OVERVIEW HOOK -->
 
