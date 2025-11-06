@@ -18,9 +18,6 @@ provider "ibm" {
 }
 
 module "filtered_images" {
-  providers = {
-    ibm = ibm
-  }
   source           = "terraform-ibm-modules/common-utilities/ibm//modules/vsi-image-selector"
   version          = "X.Y.Z" # Replace "X.Y.Z" to lock into a specific release
   architecture     = "amd64" # OS Architecture for filtering.
