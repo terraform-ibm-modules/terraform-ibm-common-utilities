@@ -9,7 +9,7 @@ locals {
   filtered_arch_images = [
     for image in data.ibm_is_images.available_images.images : image
     if strcontains(lower(image.os), var.operating_system) &&
-    strcontains(lower(image.name), var.architecture)
+    lower(image.architecture) == var.architecture
   ]
 
   # Sort by image name
