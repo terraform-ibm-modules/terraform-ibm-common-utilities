@@ -33,7 +33,7 @@ You can reference any utility in this repo from your Terraform project by pointi
     * [image-selector](./modules/image-selector)
 * [Examples](./examples)
     * [CRN parser example](./examples/crn-parser)
-    * [Image Selector example](./examples/image-selector)
+    * [VSI image selector example](./examples/image-selector)
 * [Contributing](#contributing)
 <!-- END OVERVIEW HOOK -->
 

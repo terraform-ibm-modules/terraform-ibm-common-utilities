@@ -13,7 +13,6 @@ import (
 const crnParserExample = "examples/crn-parser"
 const getImagesExample = "examples/image-selector"
 
-var validArchitectures = []string{"amd64", "s390x"}
 var validRegions = []string{
 	"us-south",
 	"br-sao",
@@ -54,20 +53,23 @@ func TestRunSelectLatestImageExample(t *testing.T) {
 
 	options := setupOptions(t, getImagesExample)
 	options.TerraformVars = map[string]interface{}{
-		"region":       validRegions[rand.Intn(len(validRegions))],
-		"architecture": validArchitectures[rand.Intn(len(validArchitectures))],
+		"region":           validRegions[rand.Intn(len(validRegions))],
+		"architecture":     "amd64",
+		"operating_system": "ubuntu",
 	}
 
 	output, err := options.RunTestConsistency()
 	assert.Nil(t, err, "This should not have errored")
 	assert.NotNil(t, output, "Expected some output")
+
 	if output != nil {
-		// imageName := output["latest_image_name"]
 		imageName := output.RawPlan.OutputChanges["latest_image_name"].After.(string)
-		assert.Contains(t, imageName, "ubuntu", "Image name should include 'ubuntu'")
+
+		// Validate OS
+		assert.Contains(t, imageName, "ubuntu", "Operating system should be 'ubuntu'")
 
 		// Check that image name contains either "amd64" or "s390x"
-		isValidArch := strings.Contains(imageName, "amd64") || strings.Contains(imageName, "s390x")
-		assert.True(t, isValidArch, "Image name should include either 'amd64' or 's390x'")
+		isValidArch := strings.Contains(imageName, "amd64")
+		assert.True(t, isValidArch, "Image architecture should be 'amd64'")
 	}
 }

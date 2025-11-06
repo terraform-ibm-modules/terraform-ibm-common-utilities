@@ -19,3 +19,9 @@ variable "architecture" {
   type        = string
   default     = "amd64"
 }
+
+variable "operating_system" {
+  description = "The operating system for image selection. Only `ubuntu` images are supported currently."
+  type        = string
+  default     = "ubuntu"
+}
