@@ -32,8 +32,8 @@ You can reference any utility in this repo from your Terraform project by pointi
     * [crn-parser](./modules/crn-parser)
     * [vsi-image-selector](./modules/vsi-image-selector)
 * [Examples](./examples)
-    * [CRN parser example](./examples/crn-parser)
-    * [VSI image selector example](./examples/vsi-image-selector)
+    * <div style="display: inline-block;"><a href="./examples/crn-parser">CRN parser example</a></div> <div style="display: inline-block; vertical-align: middle;"><a href="https://cloud.ibm.com/schematics/workspaces/create?workspace_name=cu-crn-parser-example&repository=github.com/terraform-ibm-modules/terraform-ibm-common-utilities/tree/main/examples/crn-parser" target="_blank"><img src="https://cloud.ibm.com/media/docs/images/icons/Deploy_to_cloud.svg" alt="Deploy to IBM Cloud button"></a></div>
+    * <div style="display: inline-block;"><a href="./examples/vsi-image-selector">VSI image selector example</a></div> <div style="display: inline-block; vertical-align: middle;"><a href="https://cloud.ibm.com/schematics/workspaces/create?workspace_name=cu-vsi-image-selector-example&repository=github.com/terraform-ibm-modules/terraform-ibm-common-utilities/tree/main/examples/vsi-image-selector" target="_blank"><img src="https://cloud.ibm.com/media/docs/images/icons/Deploy_to_cloud.svg" alt="Deploy to IBM Cloud button"></a></div>
 * [Contributing](#contributing)
 <!-- END OVERVIEW HOOK -->
 
