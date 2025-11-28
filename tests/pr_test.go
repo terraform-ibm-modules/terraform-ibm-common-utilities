@@ -2,11 +2,11 @@
 package test
 
 import (
-	"math/rand"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/terraform-ibm-modules/ibmcloud-terratest-wrapper/common"
 	"github.com/terraform-ibm-modules/ibmcloud-terratest-wrapper/testhelper"
 )
 
@@ -53,7 +53,7 @@ func TestRunSelectLatestImageExample(t *testing.T) {
 
 	options := setupOptions(t, getImagesExample)
 	options.TerraformVars = map[string]interface{}{
-		"region":           validRegions[rand.Intn(len(validRegions))],
+		"region":           validRegions[common.CryptoIntn(len(validRegions))],
 		"architecture":     "amd64",
 		"operating_system": "ubuntu",
 	}
