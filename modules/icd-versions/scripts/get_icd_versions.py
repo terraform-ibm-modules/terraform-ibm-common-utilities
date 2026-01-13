@@ -127,13 +127,13 @@ def transform_data(deployables_data, db_type):
         # Sort versions to find the latest one.
         # We assume semver-like versioning, so we can split by '.' and convert to int for sorting
         try:
-            versions.sort(key=lambda s: list(map(int, s.split('.'))))
+            versions.sort(key=lambda s: list(map(int, s.split("."))))
             latest_version = versions[-1]
         except ValueError:
             # Fallback if version string contains non-numeric characters
             versions.sort()
             latest_version = versions[-1]
-    
+
     if not versions:
         # It's possible the DB_TYPE is valid but no versions found, or invalid DB_TYPE
         # For our purpose, if we don't find any versions, it might be an issue.
@@ -158,7 +158,7 @@ def format_for_terraform(versions, preferred_version, latest_version):
     return {
         "versions": json.dumps(versions),
         "preferred_version": preferred_version,
-        "latest_version": latest_version
+        "latest_version": latest_version,
     }
 
 
@@ -171,7 +171,9 @@ def main():
 
     api_endpoint = get_api_endpoint(region)
     deployables_data = fetch_icd_deployables(iam_token, api_endpoint)
-    versions, preferred_version, latest_version = transform_data(deployables_data, db_type)
+    versions, preferred_version, latest_version = transform_data(
+        deployables_data, db_type
+    )
     output = format_for_terraform(versions, preferred_version, latest_version)
 
     print(json.dumps(output))

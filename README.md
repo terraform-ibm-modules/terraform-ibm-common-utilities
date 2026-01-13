@@ -30,6 +30,7 @@ You can reference any utility in this repo from your Terraform project by pointi
 * [terraform-ibm-common-utilities](#terraform-ibm-common-utilities)
 * [Submodules](./modules)
     * [crn-parser](./modules/crn-parser)
+    * [icd-versions](./modules/icd-versions)
     * [vsi-image-selector](./modules/vsi-image-selector)
 * [Examples](./examples)
     * <div style="display: inline-block;"><a href="./examples/crn-parser">CRN parser example</a></div> <div style="display: inline-block; vertical-align: middle;"><a href="https://cloud.ibm.com/schematics/workspaces/create?workspace_name=cu-crn-parser-example&repository=https://github.com/terraform-ibm-modules/terraform-ibm-common-utilities/tree/main/examples/crn-parser" target="_blank"><img src="https://cloud.ibm.com/media/docs/images/icons/Deploy_to_cloud.svg" alt="Deploy to IBM Cloud button"></a></div>

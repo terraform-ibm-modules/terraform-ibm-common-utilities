@@ -17,6 +17,6 @@ locals {
   icd_supported_versions_json = data.external.icd_versions.result["versions"]
   icd_supported_versions      = jsondecode(local.icd_supported_versions_json)
 
-  icd_preferred_version       = data.external.icd_versions.result["preferred_version"]
-  icd_latest_version          = data.external.icd_versions.result["latest_version"]
+  icd_preferred_version = data.external.icd_versions.result["preferred_version"]
+  icd_latest_version    = data.external.icd_versions.result["latest_version"]
 }
