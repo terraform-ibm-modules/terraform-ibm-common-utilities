@@ -21,7 +21,19 @@ module "icd_versions" {
 
 ### Required IAM access policies
 
-No permissions are needed to run this module.
+- Account Management
+    - **Databases for Redis** service
+        - `Viewer` role access
+    - **Databases for PostgreSQL** service
+        - `Viewer` role access
+    - **Databases for RabbitMQ** service
+        - `Viewer` role access
+    - **Databases for MySQL** service
+        - `Viewer` role access
+    - **Databases for MongoDB** service
+        - `Viewer` role access
+    - **Databases for Elasticsearch** service
+        - `Viewer` role access
 
 <!-- The following content is automatically populated by the pre-commit hook -->
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
