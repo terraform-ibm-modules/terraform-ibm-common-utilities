@@ -75,17 +75,33 @@ func TestRunSelectLatestImageExample(t *testing.T) {
 	}
 }
 
-func TestIcdVersionLister(t *testing.T) {
-	t.Parallel()
+func testIcdVersionLister(t *testing.T, icd_type string) {
 
 	options := setupOptions(t, icdVersionListerExample)
 	options.TerraformVars = map[string]interface{}{
 		"region":   "us-south",
-		"icd_type": "redis",
+		"icd_type": icd_type,
 	}
 
 	output, err := options.RunTestConsistency()
 	assert.Nil(t, err, "This should not have errored")
 	assert.NotNil(t, output, "Expected some output")
 
+	if output != nil {
+		latestVersion := output.RawPlan.OutputChanges["latest_version"].After.(string)
+		preferredVersion := output.RawPlan.OutputChanges["preferred_version"].After.(string)
+
+		assert.NotEmpty(t, latestVersion, "latestVersion can't be empty")
+		assert.NotEmpty(t, preferredVersion, "preferredVersion can't be empty")
+	}
+}
+
+func TestIcdVersionLister(t *testing.T) {
+	t.Parallel()
+
+	icd_types := []string{"redis", "postgresql", "mysql", "rabbitmq", "mongodb", "elasticsearch"}
+
+	for _, icd_type := range icd_types {
+		t.Run(icd_type, func(t *testing.T) { testIcdVersionLister(t, icd_type) })
+	}
 }

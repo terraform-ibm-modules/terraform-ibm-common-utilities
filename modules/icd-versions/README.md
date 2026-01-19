@@ -1,6 +1,6 @@
 # ICD (IBM Cloud Database) versions
 
-This terraform module uses an external data block to call the ICD API endpoint to fetch the supported versions of an ICD and outputs the list of stable versions currently supported along with latest and preferred version.
+This terraform module uses an external data block to call the ICD API endpoint using a python script to fetch the supported versions of an ICD and outputs the list of stable versions currently supported along with latest and preferred version. Python version 3 is required for the external data block to run without issues.
 
 ### Usage
 
@@ -8,7 +8,6 @@ This terraform module uses an external data block to call the ICD API endpoint t
 
 provider "ibm" {
   ibmcloud_api_key = "xxx123xxxxx" # Provide valid IBM Cloud API key.
-  region           = "us-south" # Region for which images are fetched.
 }
 
 module "icd_versions" {
@@ -21,7 +20,7 @@ module "icd_versions" {
 
 ### Required IAM access policies
 
-- Account Management
+- IAM Services
     - **Databases for Redis** service
         - `Viewer` role access
     - **Databases for PostgreSQL** service
