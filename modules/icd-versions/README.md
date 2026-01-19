@@ -1,13 +1,13 @@
-# ICD (IBMCloud Database) versions
+# ICD (IBM Cloud Database) versions
 
 This terraform module uses an external data block to call the ICD API endpoint to fetch the supported versions of an ICD and outputs the list of stable versions currently supported along with latest and preferred version.
 
-## Usage
+### Usage
 
 ```hcl
 
 provider "ibm" {
-  ibmcloud_api_key = "xxx123xxxxx" # Provide valid IBM Cloud API key # pragma: allowlist secret
+  ibmcloud_api_key = "xxx123xxxxx" # Provide valid IBM Cloud API key.
   region           = "us-south" # Region for which images are fetched.
 }
 
@@ -31,7 +31,7 @@ No permissions are needed to run this module.
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.9.0 |
 | <a name="requirement_external"></a> [external](#requirement\_external) | >=2.3.5, <3.0.0 |
-| <a name="requirement_ibm"></a> [ibm](#requirement\_ibm) | >= 1.79.2, <2.0.0 |
+| <a name="requirement_ibm"></a> [ibm](#requirement\_ibm) | >= 1.84.3, <2.0.0 |
 
 ### Modules
 
@@ -42,7 +42,7 @@ No modules.
 | Name | Type |
 |------|------|
 | [external_external.icd_versions](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
-| [ibm_iam_auth_token.tokendata](https://registry.terraform.io/providers/IBM-Cloud/ibm/latest/docs/data-sources/iam_auth_token) | data source |
+| [ibm_iam_auth_token.tokendata](https://registry.terraform.io/providers/ibm-cloud/ibm/latest/docs/data-sources/iam_auth_token) | data source |
 
 ### Inputs
 

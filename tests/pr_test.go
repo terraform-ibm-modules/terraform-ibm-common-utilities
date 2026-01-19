@@ -12,6 +12,7 @@ import (
 
 const crnParserExample = "examples/crn-parser"
 const getImagesExample = "examples/vsi-image-selector"
+const icdVersionListerExample = "examples/icd-version-lister"
 
 var validRegions = []string{
 	"us-south",
@@ -72,4 +73,19 @@ func TestRunSelectLatestImageExample(t *testing.T) {
 		isValidArch := strings.Contains(imageName, "amd64")
 		assert.True(t, isValidArch, "Image architecture should be 'amd64'")
 	}
+}
+
+func TestIcdVersionLister(t *testing.T) {
+	t.Parallel()
+
+	options := setupOptions(t, icdVersionListerExample)
+	options.TerraformVars = map[string]interface{}{
+		"region":   "us-south",
+		"icd_type": "redis",
+	}
+
+	output, err := options.RunTestConsistency()
+	assert.Nil(t, err, "This should not have errored")
+	assert.NotNil(t, output, "Expected some output")
+
 }

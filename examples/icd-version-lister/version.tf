@@ -6,10 +6,5 @@ terraform {
       # Use "greater than or equal to" range in modules
       version = ">= 1.84.3, <2.0.0"
     }
-
-    external = {
-      source  = "hashicorp/external"
-      version = ">=2.3.5, <3.0.0"
-    }
   }
 }

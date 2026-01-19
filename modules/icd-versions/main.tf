@@ -7,6 +7,13 @@ data "external" "icd_versions" {
     REGION    = var.region
     DB_TYPE   = var.icd_type
   }
+
+  lifecycle {
+    postcondition {
+      condition     = length(jsondecode(self.result["versions"])) > 0
+      error_message = "The external script returned an empty version list."
+    }
+  }
 }
 
 
