@@ -1,0 +1,15 @@
+terraform {
+  required_version = ">= 1.9.0"
+  required_providers {
+    ibm = {
+      source = "ibm-cloud/ibm"
+      # Use "greater than or equal to" range in modules
+      version = ">= 1.84.3, <2.0.0"
+    }
+
+    external = {
+      source  = "hashicorp/external"
+      version = ">=2.3.5, <3.0.0"
+    }
+  }
+}
