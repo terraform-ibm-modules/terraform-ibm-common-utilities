@@ -11,7 +11,7 @@ data "external" "icd_versions" {
   lifecycle {
     postcondition {
       condition     = length(jsondecode(self.result["versions"])) > 0
-      error_message = "The external script returned an empty version list."
+      error_message = "No supported versions found for ICD ${var.icd_type}."
     }
   }
 }
