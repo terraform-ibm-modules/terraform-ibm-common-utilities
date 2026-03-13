@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-import http.client
 import json
 import os
+import subprocess
 import sys
-from urllib.parse import urlparse
 
 
 def parse_input():
@@ -52,49 +51,89 @@ def get_api_endpoint(region):
     """
     api_endpoint = os.getenv("IBMCLOUD_ICD_API_ENDPOINT")
     if not api_endpoint:
+        # Validate region is not empty
+        if not region or region.strip() == "":
+            raise ValueError(
+                "REGION is empty or invalid. Cannot construct API endpoint URL."
+            )
         api_endpoint = f"https://api.{region}.databases.cloud.ibm.com"
+    
+    # Validate the constructed/provided endpoint
+    if not api_endpoint.startswith(("http://", "https://")):
+        raise ValueError(
+            f"Invalid API endpoint: '{api_endpoint}'. "
+            f"URL must start with http:// or https://"
+        )
+    
     return api_endpoint
 
 
 def fetch_icd_deployables(iam_token, api_endpoint):
     """
-    Fetches ICD deployables versions using HTTP connection.
+    Fetches ICD deployables versions using curl command.
+    This approach works better with corporate proxies and DNS configurations.
     Args:
         iam_token (str): IBM Cloud IAM token for authentication.
         api_endpoint (str): The API endpoint to use.
     Returns:
         dict: Parsed JSON response containing deployables information.
     """
-    parsed = urlparse(api_endpoint)
-    host = parsed.hostname
+    # Validate API endpoint
+    if not api_endpoint or not api_endpoint.startswith(("http://", "https://")):
+        raise ValueError(
+            f"Invalid API endpoint URL: '{api_endpoint}'. "
+            f"URL must start with http:// or https://"
+        )
 
     # Remove 'Bearer ' prefix if present to avoid double prefixing
     if iam_token.startswith("Bearer "):
         iam_token = iam_token[7:]
 
-    headers = {
-        "Authorization": f"Bearer {iam_token}",
-        "Accept": "application/json",
-    }
-
-    conn = http.client.HTTPSConnection(host)
+    # Construct the full URL
+    url = f"{api_endpoint.rstrip('/')}/v5/ibm/deployables"
+    
+    # Build curl command
+    # Using curl respects system proxy settings and DNS configuration better than Python's http.client
+    curl_command = [
+        "curl",
+        "-s",  # Silent mode
+        "-f",  # Fail silently on HTTP errors
+        "-H", f"Authorization: Bearer {iam_token}",
+        "-H", "Accept: application/json",
+        url
+    ]
+    
     try:
-        # Final API path
-        url = "/v5/ibm/deployables"
-        conn.request("GET", url, headers=headers)
-        response = conn.getresponse()
-        data = response.read().decode()
-
-        if response.status != 200:
+        # Execute curl command
+        result = subprocess.run(
+            curl_command,
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=True
+        )
+        
+        # Parse JSON response
+        try:
+            return json.loads(result.stdout)
+        except json.JSONDecodeError as e:
             raise RuntimeError(
-                f"API request failed: {response.status} {response.reason} - {data}"
-            )
-
-        return json.loads(data)
-    except http.client.HTTPException as e:
-        raise RuntimeError("HTTP request failed") from e
-    finally:
-        conn.close()
+                f"Failed to parse API response as JSON. Response: {result.stdout[:200]}"
+            ) from e
+            
+    except subprocess.TimeoutExpired:
+        raise RuntimeError("API request timed out after 30 seconds")
+    except subprocess.CalledProcessError as e:
+        error_msg = f"API request failed with exit code {e.returncode}"
+        if e.stderr:
+            error_msg += f". Error: {e.stderr}"
+        if e.stdout:
+            error_msg += f". Response: {e.stdout[:200]}"
+        raise RuntimeError(error_msg)
+    except FileNotFoundError:
+        raise RuntimeError(
+            "curl command not found. Please ensure curl is installed and available in PATH."
+        )
 
 
 def transform_data(deployables_data, db_type):
@@ -166,17 +205,28 @@ def main():
     """
     Main execution function.
     """
-    data = parse_input()
-    iam_token, region, db_type = validate_inputs(data)
+    try:
+        data = parse_input()
+        iam_token, region, db_type = validate_inputs(data)
 
-    api_endpoint = get_api_endpoint(region)
-    deployables_data = fetch_icd_deployables(iam_token, api_endpoint)
-    versions, preferred_version, latest_version = transform_data(
-        deployables_data, db_type
-    )
-    output = format_for_terraform(versions, preferred_version, latest_version)
+        api_endpoint = get_api_endpoint(region)
+        deployables_data = fetch_icd_deployables(iam_token, api_endpoint)
+        versions, preferred_version, latest_version = transform_data(
+            deployables_data, db_type
+        )
+        output = format_for_terraform(versions, preferred_version, latest_version)
 
-    print(json.dumps(output))
+        print(json.dumps(output))
+    except ValueError as e:
+        sys.stderr.write(f"ERROR: Validation failed: {str(e)}\n")
+        sys.exit(1)
+    except RuntimeError as e:
+        sys.stderr.write(f"ERROR: Runtime error: {str(e)}\n")
+        sys.exit(1)
+    except Exception as e:
+        sys.stderr.write(f"ERROR: Unexpected error: {str(e)}\n")
+        sys.stderr.write(f"ERROR: Type: {type(e).__name__}\n")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
