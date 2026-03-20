@@ -28,17 +28,34 @@ You can reference any utility in this repo from your Terraform project by pointi
 <!-- The following content is automatically populated by the pre-commit hook -->
 <!-- BEGIN OVERVIEW HOOK -->
 ## Overview
-* [terraform-ibm-common-utilities](#terraform-ibm-common-utilities)
-* [Submodules](./modules)
-    * [crn-parser](./modules/crn-parser)
-    * [icd-versions](./modules/icd-versions)
-    * [vsi-image-selector](./modules/vsi-image-selector)
-* [Examples](./examples)
-:information_source: Ctrl/Cmd+Click or right-click on the Schematics deploy button to open in a new tab
-    * <a href="./examples/crn-parser">CRN parser example</a> <a href="https://cloud.ibm.com/schematics/workspaces/create?workspace_name=common-utilities-crn-parser-example&repository=https://github.com/terraform-ibm-modules/terraform-ibm-common-utilities/tree/main/examples/crn-parser"><img src="https://img.shields.io/badge/Deploy%20with IBM%20Cloud%20Schematics-0f62fe?logo=ibm&logoColor=white&labelColor=0f62fe" alt="Deploy with IBM Cloud Schematics" style="height: 16px; vertical-align: text-bottom; margin-left: 5px;"></a>
-    * <a href="./examples/icd-version-lister">ICD Version Lister</a> <a href="https://cloud.ibm.com/schematics/workspaces/create?workspace_name=common-utilities-icd-version-lister-example&repository=https://github.com/terraform-ibm-modules/terraform-ibm-common-utilities/tree/main/examples/icd-version-lister"><img src="https://img.shields.io/badge/Deploy%20with IBM%20Cloud%20Schematics-0f62fe?logo=ibm&logoColor=white&labelColor=0f62fe" alt="Deploy with IBM Cloud Schematics" style="height: 16px; vertical-align: text-bottom; margin-left: 5px;"></a>
-    * <a href="./examples/vsi-image-selector">VSI image selector example</a> <a href="https://cloud.ibm.com/schematics/workspaces/create?workspace_name=common-utilities-vsi-image-selector-example&repository=https://github.com/terraform-ibm-modules/terraform-ibm-common-utilities/tree/main/examples/vsi-image-selector"><img src="https://img.shields.io/badge/Deploy%20with IBM%20Cloud%20Schematics-0f62fe?logo=ibm&logoColor=white&labelColor=0f62fe" alt="Deploy with IBM Cloud Schematics" style="height: 16px; vertical-align: text-bottom; margin-left: 5px;"></a>
-* [Contributing](#contributing)
+<ul>
+  <li><a href="#terraform-ibm-common-utilities">terraform-ibm-common-utilities</a></li>
+  <li><a href="./modules">Submodules</a>
+    <ul>
+      <li><a href="./modules/crn-parser">crn-parser</a></li>
+      <li><a href="./modules/icd-versions">icd-versions</a></li>
+      <li><a href="./modules/vsi-image-selector">vsi-image-selector</a></li>
+    </ul>
+  </li>
+  <li><a href="./examples">Examples</a>
+    <ul>
+      <li>
+        <a href="./examples/crn-parser">CRN parser example</a>
+        <a href="https://cloud.ibm.com/schematics/workspaces/create?workspace_name=common-utilities-crn-parser-example&repository=https://github.com/terraform-ibm-modules/terraform-ibm-common-utilities/tree/main/examples/crn-parser"><img src="https://img.shields.io/badge/Deploy%20with%20IBM%20Cloud%20Schematics-0f62fe?style=flat&logo=ibm&logoColor=white&labelColor=0f62fe" alt="Deploy with IBM Cloud Schematics" style="height: 16px; vertical-align: text-bottom; margin-left: 5px;"></a>
+      </li>
+      <li>
+        <a href="./examples/icd-version-lister">ICD Version Lister</a>
+        <a href="https://cloud.ibm.com/schematics/workspaces/create?workspace_name=common-utilities-icd-version-lister-example&repository=https://github.com/terraform-ibm-modules/terraform-ibm-common-utilities/tree/main/examples/icd-version-lister"><img src="https://img.shields.io/badge/Deploy%20with%20IBM%20Cloud%20Schematics-0f62fe?style=flat&logo=ibm&logoColor=white&labelColor=0f62fe" alt="Deploy with IBM Cloud Schematics" style="height: 16px; vertical-align: text-bottom; margin-left: 5px;"></a>
+      </li>
+      <li>
+        <a href="./examples/vsi-image-selector">VSI image selector example</a>
+        <a href="https://cloud.ibm.com/schematics/workspaces/create?workspace_name=common-utilities-vsi-image-selector-example&repository=https://github.com/terraform-ibm-modules/terraform-ibm-common-utilities/tree/main/examples/vsi-image-selector"><img src="https://img.shields.io/badge/Deploy%20with%20IBM%20Cloud%20Schematics-0f62fe?style=flat&logo=ibm&logoColor=white&labelColor=0f62fe" alt="Deploy with IBM Cloud Schematics" style="height: 16px; vertical-align: text-bottom; margin-left: 5px;"></a>
+      </li>
+    </ul>
+    ℹ️ Ctrl/Cmd+Click or right-click on the Schematics deploy button to open in a new tab.
+  </li>
+  <li><a href="#contributing">Contributing</a></li>
+</ul>
 <!-- END OVERVIEW HOOK -->
 
 <!-- ### Required IAM access policies -->
