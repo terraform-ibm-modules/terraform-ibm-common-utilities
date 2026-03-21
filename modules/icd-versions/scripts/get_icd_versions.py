@@ -3,6 +3,7 @@ import http.client
 import json
 import os
 import sys
+import time
 from urllib.parse import urlparse
 
 
@@ -56,12 +57,14 @@ def get_api_endpoint(region):
     return api_endpoint
 
 
-def fetch_icd_deployables(iam_token, api_endpoint):
+def fetch_icd_deployables(iam_token, api_endpoint, max_retries=3, retry_delay=10):
     """
-    Fetches ICD deployables versions using HTTP connection.
+    Fetches ICD deployables versions using HTTP connection with retry logic.
     Args:
         iam_token (str): IBM Cloud IAM token for authentication.
         api_endpoint (str): The API endpoint to use.
+        max_retries (int): Maximum number of retry attempts (default: 3).
+        retry_delay (int): Delay in seconds between retries (default: 10).
     Returns:
         dict: Parsed JSON response containing deployables information.
     """
@@ -77,24 +80,48 @@ def fetch_icd_deployables(iam_token, api_endpoint):
         "Accept": "application/json",
     }
 
-    conn = http.client.HTTPSConnection(host)
-    try:
-        # Final API path
-        url = "/v5/ibm/deployables"
-        conn.request("GET", url, headers=headers)
-        response = conn.getresponse()
-        data = response.read().decode()
+    last_exception = None
 
-        if response.status != 200:
-            raise RuntimeError(
-                f"API request failed: {response.status} {response.reason} - {data}"
-            )
+    for attempt in range(max_retries + 1):  # +1 to include the initial attempt
+        try:
+            conn = http.client.HTTPSConnection(host)
+            try:
+                # Final API path
+                url = "/v5/ibm/deployables"
+                conn.request("GET", url, headers=headers)
+                response = conn.getresponse()
+                data = response.read().decode()
 
-        return json.loads(data)
-    except http.client.HTTPException as e:
-        raise RuntimeError("HTTP request failed") from e
-    finally:
-        conn.close()
+                if response.status != 200:
+                    error_msg = f"API request failed: {response.status} {response.reason} - {data}"
+
+                    # If this is not the last attempt, silently retry
+                    if attempt < max_retries:
+                        time.sleep(retry_delay)
+                        continue
+                    else:
+                        raise RuntimeError(error_msg)
+
+                # Success - return the parsed JSON
+                return json.loads(data)
+
+            finally:
+                conn.close()
+
+        except (http.client.HTTPException, OSError, ConnectionError) as e:
+            last_exception = e
+
+            # If this is not the last attempt, silently retry
+            if attempt < max_retries:
+                time.sleep(retry_delay)
+            else:
+                # Last attempt failed, raise the exception
+                raise RuntimeError(
+                    f"HTTP request failed after {max_retries + 1} attempts"
+                ) from last_exception
+
+    # This should not be reached, but just in case
+    raise RuntimeError("HTTP request failed") from last_exception
 
 
 def transform_data(deployables_data, db_type):
