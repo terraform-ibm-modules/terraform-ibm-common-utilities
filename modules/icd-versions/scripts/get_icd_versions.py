@@ -95,8 +95,11 @@ def fetch_icd_deployables(iam_token, api_endpoint, max_retries=3, retry_delay=10
                 if response.status != 200:
                     error_msg = f"API request failed: {response.status} {response.reason} - {data}"
 
-                    # If this is not the last attempt, silently retry
-                    if attempt < max_retries:
+                    # Only retry on server errors (5xx) or rate limiting (429)
+                    should_retry = response.status >= 500 or response.status == 429
+
+                    if should_retry and attempt < max_retries:
+                        conn.close()
                         time.sleep(retry_delay)
                         continue
                     else:
@@ -112,6 +115,7 @@ def fetch_icd_deployables(iam_token, api_endpoint, max_retries=3, retry_delay=10
             last_exception = e
 
             # If this is not the last attempt, silently retry
+            # we don't want to print logs for retry as they are going as input to terraform's external data block and it will break the json output expected by terraform
             if attempt < max_retries:
                 time.sleep(retry_delay)
             else:
@@ -119,9 +123,6 @@ def fetch_icd_deployables(iam_token, api_endpoint, max_retries=3, retry_delay=10
                 raise RuntimeError(
                     f"HTTP request failed after {max_retries + 1} attempts"
                 ) from last_exception
-
-    # This should not be reached, but just in case
-    raise RuntimeError("HTTP request failed") from last_exception
 
 
 def transform_data(deployables_data, db_type):
