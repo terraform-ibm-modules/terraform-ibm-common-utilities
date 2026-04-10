@@ -86,6 +86,7 @@ def fetch_icd_deployables(iam_token, api_endpoint, max_retries=3, retry_delay=10
         conn = None
         try:
             conn = http.client.HTTPSConnection(host)
+            # Final API path
             url = "/v5/ibm/deployables"
             conn.request("GET", url, headers=headers)
             response = conn.getresponse()
