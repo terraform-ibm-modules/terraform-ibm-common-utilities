@@ -83,33 +83,28 @@ def fetch_icd_deployables(iam_token, api_endpoint, max_retries=3, retry_delay=10
     last_exception = None
 
     for attempt in range(max_retries + 1):  # +1 to include the initial attempt
+        conn = None
         try:
             conn = http.client.HTTPSConnection(host)
-            try:
-                # Final API path
-                url = "/v5/ibm/deployables"
-                conn.request("GET", url, headers=headers)
-                response = conn.getresponse()
-                data = response.read().decode()
+            url = "/v5/ibm/deployables"
+            conn.request("GET", url, headers=headers)
+            response = conn.getresponse()
+            data = response.read().decode()
 
-                if response.status != 200:
-                    error_msg = f"API request failed: {response.status} {response.reason} - {data}"
+            if response.status != 200:
+                error_msg = f"API request failed: {response.status} {response.reason} - {data}"
 
-                    # Only retry on server errors (5xx) or rate limiting (429)
-                    should_retry = response.status >= 500 or response.status == 429
+                # Only retry on server errors (5xx) or rate limiting (429)
+                should_retry = response.status >= 500 or response.status == 429
 
-                    if should_retry and attempt < max_retries:
-                        conn.close()
-                        time.sleep(retry_delay)
-                        continue
-                    else:
-                        raise RuntimeError(error_msg)
+                if should_retry and attempt < max_retries:
+                    time.sleep(retry_delay)
+                    continue
+                else:
+                    raise RuntimeError(error_msg)
 
-                # Success - return the parsed JSON
-                return json.loads(data)
-
-            finally:
-                conn.close()
+            # Success - return the parsed JSON
+            return json.loads(data)
 
         except (http.client.HTTPException, OSError, ConnectionError) as e:
             last_exception = e
@@ -123,6 +118,10 @@ def fetch_icd_deployables(iam_token, api_endpoint, max_retries=3, retry_delay=10
                 raise RuntimeError(
                     f"HTTP request failed after {max_retries + 1} attempts"
                 ) from last_exception
+        finally:
+            # Ensure connection is closed if it was created
+            if conn is not None:
+                conn.close()
 
 
 def transform_data(deployables_data, db_type):
