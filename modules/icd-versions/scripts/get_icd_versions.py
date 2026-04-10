@@ -1,9 +1,22 @@
 #!/usr/bin/env python3
+"""
+Modified version of get_icd_versions.py with proxy support.
+
+This script adds support for corporate proxy environments by reading
+proxy configuration from environment variables:
+- HTTPS_PROXY / https_proxy
+- HTTP_PROXY / http_proxy
+- NO_PROXY / no_proxy
+
+Original script from: terraform-ibm-modules/terraform-ibm-common-utilities v1.4.2
+Modified to support authenticated proxy connections.
+"""
+
 import http.client
 import json
 import os
 import sys
-import time
+import base64
 from urllib.parse import urlparse
 
 
@@ -57,19 +70,26 @@ def get_api_endpoint(region):
     return api_endpoint
 
 
-def fetch_icd_deployables(iam_token, api_endpoint, max_retries=3, retry_delay=10):
+def fetch_icd_deployables(iam_token, api_endpoint):
     """
-    Fetches ICD deployables versions using HTTP connection with retry logic.
+    Fetches ICD deployables versions using HTTP connection with proxy support.
+    
+    This function automatically reads proxy configuration from environment variables:
+    - HTTPS_PROXY / https_proxy: Proxy URL with optional authentication
+      Example: http://username:password@proxy.company.com:8080
+    - HTTP_PROXY / http_proxy: HTTP proxy URL
+    - NO_PROXY / no_proxy: Comma-separated list of hosts to bypass proxy
+      Supports wildcards like *.domain.com
+    
     Args:
         iam_token (str): IBM Cloud IAM token for authentication.
         api_endpoint (str): The API endpoint to use.
-        max_retries (int): Maximum number of retry attempts (default: 3).
-        retry_delay (int): Delay in seconds between retries (default: 10).
     Returns:
         dict: Parsed JSON response containing deployables information.
     """
     parsed = urlparse(api_endpoint)
     host = parsed.hostname
+    port = parsed.port or 443
 
     # Remove 'Bearer ' prefix if present to avoid double prefixing
     if iam_token.startswith("Bearer "):
@@ -80,49 +100,91 @@ def fetch_icd_deployables(iam_token, api_endpoint, max_retries=3, retry_delay=10
         "Accept": "application/json",
     }
 
-    last_exception = None
+    # Check for proxy configuration from environment variables
+    # Check both uppercase and lowercase versions for compatibility
+    https_proxy = os.getenv('HTTPS_PROXY') or os.getenv('https_proxy')
+    http_proxy = os.getenv('HTTP_PROXY') or os.getenv('http_proxy')
+    no_proxy = os.getenv('NO_PROXY') or os.getenv('no_proxy') or ''
+    
+    # Determine if we should use proxy for this host
+    use_proxy = True
+    if no_proxy:
+        no_proxy_list = [item.strip() for item in no_proxy.split(',')]
+        for pattern in no_proxy_list:
+            if pattern.startswith('*.'):
+                # Wildcard domain matching (e.g., *.echonet matches host.echonet)
+                if host.endswith(pattern[1:]):
+                    use_proxy = False
+                    break
+            elif pattern == host or host.endswith('.' + pattern):
+                # Exact match or subdomain match
+                use_proxy = False
+                break
+    
+    # Select appropriate proxy based on protocol
+    proxy_url = https_proxy if parsed.scheme == 'https' else http_proxy
+    
+    conn = None
+    try:
+        if use_proxy and proxy_url:
+            # Parse proxy URL to extract host, port, and credentials
+            proxy_parsed = urlparse(proxy_url)
+            proxy_host = proxy_parsed.hostname
+            proxy_port = proxy_parsed.port or 8080
+            proxy_user = proxy_parsed.username
+            proxy_pass = proxy_parsed.password
+            
+            # Validate proxy host is not None
+            if not proxy_host:
+                raise ValueError(f"Invalid proxy URL: {proxy_url}")
+            
+            # Create HTTPS connection to the proxy server
+            conn = http.client.HTTPSConnection(proxy_host, proxy_port, timeout=30)
+            
+            # Set up CONNECT tunnel to the target host through the proxy
+            # This is required for HTTPS connections through HTTP proxies
+            conn.set_tunnel(host, port)
+            
+            # If proxy requires authentication, add credentials to tunnel headers
+            if proxy_user and proxy_pass:
+                # Encode credentials for HTTP Basic authentication
+                credentials = f"{proxy_user}:{proxy_pass}"
+                encoded_credentials = base64.b64encode(credentials.encode()).decode()
+                
+                # Set tunnel headers with proxy authentication
+                # Note: We're accessing internal attributes here, which is necessary
+                # for adding authentication to the CONNECT tunnel
+                # Type ignore comments are needed as these are internal implementation details
+                conn._tunnel_host = host  # type: ignore[attr-defined]
+                conn._tunnel_port = port  # type: ignore[attr-defined]
+                conn._tunnel_headers = {  # type: ignore[attr-defined]
+                    'Proxy-Authorization': f'Basic {encoded_credentials}',
+                    'Proxy-Connection': 'Keep-Alive'
+                }
+        else:
+            # Direct connection without proxy
+            conn = http.client.HTTPSConnection(host, port, timeout=30)
+        
+        # Make the API request
+        url = "/v5/ibm/deployables"
+        conn.request("GET", url, headers=headers)
+        response = conn.getresponse()
+        data = response.read().decode()
 
-    for attempt in range(max_retries + 1):  # +1 to include the initial attempt
-        conn = None
-        try:
-            conn = http.client.HTTPSConnection(host)
-            # Final API path
-            url = "/v5/ibm/deployables"
-            conn.request("GET", url, headers=headers)
-            response = conn.getresponse()
-            data = response.read().decode()
+        if response.status != 200:
+            raise RuntimeError(
+                f"API request failed: {response.status} {response.reason} - {data}"
+            )
 
-            if response.status != 200:
-                error_msg = f"API request failed: {response.status} {response.reason} - {data}"
-
-                # Only retry on server errors (5xx) or rate limiting (429)
-                should_retry = response.status >= 500 or response.status == 429
-
-                if should_retry and attempt < max_retries:
-                    time.sleep(retry_delay)
-                    continue
-                else:
-                    raise RuntimeError(error_msg)
-
-            # Success - return the parsed JSON
-            return json.loads(data)
-
-        except (http.client.HTTPException, OSError, ConnectionError) as e:
-            last_exception = e
-
-            # If this is not the last attempt, silently retry
-            # we don't want to print logs for retry as they are going as input to terraform's external data block and it will break the json output expected by terraform
-            if attempt < max_retries:
-                time.sleep(retry_delay)
-            else:
-                # Last attempt failed, raise the exception
-                raise RuntimeError(
-                    f"HTTP request failed after {max_retries + 1} attempts"
-                ) from last_exception
-        finally:
-            # Ensure connection is closed if it was created
-            if conn is not None:
-                conn.close()
+        return json.loads(data)
+        
+    except http.client.HTTPException as e:
+        raise RuntimeError(f"HTTP request failed: {str(e)}") from e
+    except Exception as e:
+        raise RuntimeError(f"Connection error: {str(e)}") from e
+    finally:
+        if conn is not None:
+            conn.close()
 
 
 def transform_data(deployables_data, db_type):
@@ -130,7 +192,7 @@ def transform_data(deployables_data, db_type):
     Extracts versions for the specific DB_TYPE.
     Args:
         deployables_data (dict): Raw data returned by the API.
-        db_type (str): The type of database to filter for (e.g., 'redis').
+        db_type (str): The type of database to filter for (e.g., 'postgresql').
     Returns:
         tuple: (versions, preferred_version, latest_version)
     """
@@ -209,3 +271,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# Made with Bob
