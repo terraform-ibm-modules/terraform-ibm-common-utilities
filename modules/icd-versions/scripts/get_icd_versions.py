@@ -1,17 +1,4 @@
 #!/usr/bin/env python3
-"""
-Modified version of get_icd_versions.py with proxy support.
-
-This script adds support for corporate proxy environments by reading
-proxy configuration from environment variables:
-- HTTPS_PROXY / https_proxy
-- HTTP_PROXY / http_proxy
-- NO_PROXY / no_proxy
-
-Original script from: terraform-ibm-modules/terraform-ibm-common-utilities v1.4.2
-Modified to support authenticated proxy connections.
-"""
-
 import http.client
 import json
 import os
@@ -73,13 +60,6 @@ def get_api_endpoint(region):
 def fetch_icd_deployables(iam_token, api_endpoint):
     """
     Fetches ICD deployables versions using HTTP connection with proxy support.
-    
-    This function automatically reads proxy configuration from environment variables:
-    - HTTPS_PROXY / https_proxy: Proxy URL with optional authentication
-      Example: http://username:password@proxy.company.com:8080
-    - HTTP_PROXY / http_proxy: HTTP proxy URL
-    - NO_PROXY / no_proxy: Comma-separated list of hosts to bypass proxy
-      Supports wildcards like *.domain.com
     
     Args:
         iam_token (str): IBM Cloud IAM token for authentication.
@@ -271,5 +251,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# Made with Bob
