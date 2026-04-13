@@ -58,7 +58,7 @@ def get_api_endpoint(region):
     return api_endpoint
 
 
-def fetch_icd_deployables(iam_token, api_endpoint, max_retries=3, retry_delay=2):
+def fetch_icd_deployables(iam_token, api_endpoint, max_retries=3, retry_delay=10):
     """
     Fetches ICD deployables versions using HTTP connection with proxy support and retry logic.
     
@@ -66,7 +66,7 @@ def fetch_icd_deployables(iam_token, api_endpoint, max_retries=3, retry_delay=2)
         iam_token (str): IBM Cloud IAM token for authentication.
         api_endpoint (str): The API endpoint to use.
         max_retries (int): Maximum number of retry attempts. Default is 3.
-        retry_delay (int): Initial delay in seconds between retries. Default is 2.
+        retry_delay (int): Initial delay in seconds between retries. Default is 10.
                           Uses exponential backoff (delay * 2^attempt).
     Returns:
         dict: Parsed JSON response containing deployables information.
@@ -285,16 +285,7 @@ def main():
 
     api_endpoint = get_api_endpoint(region)
     
-    # Allow customization of retry parameters via environment variables
-    max_retries = int(os.getenv('ICD_MAX_RETRIES', '3'))
-    retry_delay = int(os.getenv('ICD_RETRY_DELAY', '2'))
-    
-    deployables_data = fetch_icd_deployables(
-        iam_token,
-        api_endpoint,
-        max_retries=max_retries,
-        retry_delay=retry_delay
-    )
+    deployables_data = fetch_icd_deployables(iam_token, api_endpoint)
     versions, preferred_version, latest_version = transform_data(
         deployables_data, db_type
     )
