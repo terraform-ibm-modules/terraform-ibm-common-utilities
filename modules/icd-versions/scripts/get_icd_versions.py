@@ -3,7 +3,9 @@ import json
 import os
 import sys
 import time
+
 import requests
+from requests.exceptions import ConnectionError, ProxyError
 
 
 def parse_input():
@@ -60,7 +62,7 @@ def fetch_icd_deployables(iam_token, api_endpoint, max_retries=3, retry_delay=10
     """
     Fetches ICD deployables versions using requests library with retry logic.
     Automatically respects HTTP_PROXY, HTTPS_PROXY, and NO_PROXY environment variables.
-    
+
     Args:
         iam_token (str): IBM Cloud IAM token for authentication.
         api_endpoint (str): The API endpoint to use.
@@ -80,7 +82,7 @@ def fetch_icd_deployables(iam_token, api_endpoint, max_retries=3, retry_delay=10
 
     # Construct the full URL
     url = f"{api_endpoint}/v5/ibm/deployables"
-    
+
     last_exception = None
 
     for attempt in range(max_retries + 1):  # +1 to include the initial attempt
@@ -91,20 +93,23 @@ def fetch_icd_deployables(iam_token, api_endpoint, max_retries=3, retry_delay=10
                 url,
                 headers=headers,
                 timeout=30,  # 30 second timeout
-                verify=True  # Verify SSL certificates (respects REQUESTS_CA_BUNDLE env var)
+                verify=True,  # Verify SSL certificates (respects REQUESTS_CA_BUNDLE env var)
             )
 
             if response.status_code != 200:
-                error_msg = f"API request failed: {response.status_code} {response.reason}"
-                
+                error_msg = (
+                    f"API request failed: {response.status_code} {response.reason}"
+                )
+
                 # Include response body for debugging if available
                 try:
                     error_msg += f" - {response.text}"
-                except:
+                except Exception:
                     pass
 
                 # Only retry on server errors (5xx) or rate limiting (429)
-                should_retry = response.status_code >= 500 or response.status_code == 429
+                status = response.status_code
+                should_retry = status >= 500 or status == 429
 
                 if should_retry and attempt < max_retries:
                     time.sleep(retry_delay)
@@ -124,12 +129,12 @@ def fetch_icd_deployables(iam_token, api_endpoint, max_retries=3, retry_delay=10
                 time.sleep(retry_delay)
             else:
                 # Last attempt failed, raise the exception with helpful message
-                error_msg = f"HTTP request failed after {max_retries + 1} attempts: {str(e)}"
-                
+                error_msg = f"HTTP request failed after {max_retries + 1} attempts: {e}"
+
                 # Add proxy hint if it's a connection error
-                if isinstance(e, (requests.exceptions.ConnectionError, requests.exceptions.ProxyError)):
+                if isinstance(e, (ConnectionError, ProxyError)):
                     error_msg += "\nHint: If you're behind a corporate proxy, set HTTPS_PROXY environment variable"
-                
+
                 raise RuntimeError(error_msg) from last_exception
 
 
