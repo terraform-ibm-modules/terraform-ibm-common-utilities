@@ -7,10 +7,27 @@ This terraform module uses an external data block to call the ICD API endpoint u
 ### Python Requirements
 
 - **Python 3.x** is required
-- **requests library** must be installed:
+
+#### Automatic Dependency Installation
+
+This module **automatically installs** the required `requests` library when you run `terraform apply` or `terraform plan`. The installation:
+
+- Checks if `requests` is already installed before attempting installation
+- Uses `pip install --user` to install packages in your user directory if not found
+- Only runs when the `requirements.txt` file changes
+
+The installation command used is:
 
 ```bash
-pip install requests
+python3 -c "import requests" 2>/dev/null || python3 -m pip install --user -q -r requirements.txt
+```
+
+#### Manual Pre-Installation (Optional)
+
+If you prefer to pre-install dependencies manually:
+
+```bash
+pip install requests>=2.31.0
 ```
 
 ### Corporate Proxy Configuration
@@ -40,7 +57,6 @@ export REQUESTS_CA_BUNDLE="/path/to/corporate-ca-bundle.crt"
 ## Usage
 
 ```hcl
-
 provider "ibm" {
   ibmcloud_api_key = "xxx123xxxxx" # Provide valid IBM Cloud API key.
 }
