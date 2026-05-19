@@ -57,6 +57,7 @@ func TestRunSelectLatestImageExample(t *testing.T) {
 		"region":           validRegions[common.CryptoIntn(len(validRegions))],
 		"architecture":     "amd64",
 		"operating_system": "ubuntu",
+		"operating_system_version": "24",
 	}
 
 	output, err := options.RunTestConsistency()

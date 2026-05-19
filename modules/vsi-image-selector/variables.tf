@@ -46,6 +46,12 @@ variable "operating_system" {
   }
 }
 
+variable "operating_system_version" {
+  description = "Optional operating system version used to filter image names further, such as `20`, `22`, or `24` for Ubuntu releases."
+  type        = string
+  default     = null
+}
+
 variable "is_catalog_managed" {
   description = "Flag to get images which are managed as part of a catalog offering."
   type        = bool

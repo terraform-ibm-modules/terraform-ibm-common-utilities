@@ -25,3 +25,9 @@ variable "operating_system" {
   type        = string
   default     = "ubuntu"
 }
+
+variable "operating_system_version" {
+  description = "Optional operating system version used to filter image names further, such as `20`, `22`, or `24` for Ubuntu releases."
+  type        = string
+  default     = null
+}
