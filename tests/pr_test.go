@@ -54,9 +54,9 @@ func TestRunSelectLatestImageExample(t *testing.T) {
 
 	options := setupOptions(t, getImagesExample)
 	options.TerraformVars = map[string]interface{}{
-		"region":           validRegions[common.CryptoIntn(len(validRegions))],
-		"architecture":     "amd64",
-		"operating_system": "ubuntu",
+		"region":                   validRegions[common.CryptoIntn(len(validRegions))],
+		"architecture":             "amd64",
+		"operating_system":         "ubuntu",
 		"operating_system_version": "24",
 	}
 
