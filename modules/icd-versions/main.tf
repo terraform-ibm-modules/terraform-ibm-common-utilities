@@ -1,6 +1,21 @@
+resource "terraform_data" "install_python_requirements" {
+  count = var.auto_install_dependencies ? 1 : 0
+  triggers_replace = {
+    requirements_hash = filemd5("${path.module}/scripts/requirements.txt")
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      python3 -c "import requests" 2>/dev/null || python3 -m pip install --user -q -r ${path.module}/scripts/requirements.txt
+    EOT
+  }
+}
+
 data "ibm_iam_auth_token" "tokendata" {}
 
 data "external" "icd_versions" {
+  depends_on = [terraform_data.install_python_requirements]
+
   program = ["python3", "${path.module}/scripts/get_icd_versions.py"]
   query = {
     IAM_TOKEN = sensitive(data.ibm_iam_auth_token.tokendata.iam_access_token)

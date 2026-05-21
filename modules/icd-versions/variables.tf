@@ -11,3 +11,9 @@ variable "icd_type" {
   type        = string
   description = "The type of the ICD."
 }
+
+variable "auto_install_dependencies" {
+  type        = bool
+  description = "Whether to automatically install Python dependencies (requests library) during Terraform execution. Set to false if you prefer to manage dependencies manually."
+  default     = true
+}

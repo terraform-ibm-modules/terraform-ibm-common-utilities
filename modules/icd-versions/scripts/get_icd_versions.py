@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-import http.client
 import json
 import os
 import sys
-import base64
 import time
-from urllib.parse import urlparse
+
+import requests
+from requests.exceptions import ConnectionError, ProxyError
 
 
 def parse_input():
@@ -60,21 +60,17 @@ def get_api_endpoint(region):
 
 def fetch_icd_deployables(iam_token, api_endpoint, max_retries=3, retry_delay=10):
     """
-    Fetches ICD deployables versions using HTTP connection with proxy support and retry logic.
-    
+    Fetches ICD deployables versions using requests library with retry logic.
+    Automatically respects HTTP_PROXY, HTTPS_PROXY, and NO_PROXY environment variables.
+
     Args:
         iam_token (str): IBM Cloud IAM token for authentication.
         api_endpoint (str): The API endpoint to use.
-        max_retries (int): Maximum number of retry attempts. Default is 3.
-        retry_delay (int): Initial delay in seconds between retries. Default is 10.
-                          Uses exponential backoff (delay * 2^attempt).
+        max_retries (int): Maximum number of retry attempts (default: 3).
+        retry_delay (int): Delay in seconds between retries (default: 10).
     Returns:
         dict: Parsed JSON response containing deployables information.
     """
-    parsed = urlparse(api_endpoint)
-    host = parsed.hostname
-    port = parsed.port or 443
-
     # Remove 'Bearer ' prefix if present to avoid double prefixing
     if iam_token.startswith("Bearer "):
         iam_token = iam_token[7:]
@@ -84,131 +80,62 @@ def fetch_icd_deployables(iam_token, api_endpoint, max_retries=3, retry_delay=10
         "Accept": "application/json",
     }
 
-    # Check for proxy configuration from environment variables
-    # Check both uppercase and lowercase versions for compatibility
-    https_proxy = os.getenv('HTTPS_PROXY') or os.getenv('https_proxy')
-    http_proxy = os.getenv('HTTP_PROXY') or os.getenv('http_proxy')
-    no_proxy = os.getenv('NO_PROXY') or os.getenv('no_proxy') or ''
-    
-    # Determine if we should use proxy for this host
-    use_proxy = True
-    if no_proxy:
-        no_proxy_list = [item.strip() for item in no_proxy.split(',')]
-        for pattern in no_proxy_list:
-            if pattern.startswith('*.'):
-                # Wildcard domain matching (e.g., *.echonet matches host.echonet)
-                if host.endswith(pattern[1:]):
-                    use_proxy = False
-                    break
-            elif pattern == host or host.endswith('.' + pattern):
-                # Exact match or subdomain match
-                use_proxy = False
-                break
-    
-    # Select appropriate proxy based on protocol
-    proxy_url = https_proxy if parsed.scheme == 'https' else http_proxy
-    
-    # Retry loop with exponential backoff
-    last_exception = None
-    for attempt in range(max_retries):
-        conn = None
-        try:
-            if use_proxy and proxy_url:
-                # Parse proxy URL to extract host, port, and credentials
-                proxy_parsed = urlparse(proxy_url)
-                proxy_host = proxy_parsed.hostname
-                proxy_port = proxy_parsed.port or 8080
-                proxy_user = proxy_parsed.username
-                proxy_pass = proxy_parsed.password
-                
-                # Validate proxy host is not None
-                if not proxy_host:
-                    raise ValueError(f"Invalid proxy URL: {proxy_url}")
-                
-                # Create HTTPS connection to the proxy server
-                conn = http.client.HTTPSConnection(proxy_host, proxy_port, timeout=30)
-                
-                # Set up CONNECT tunnel to the target host through the proxy
-                # This is required for HTTPS connections through HTTP proxies
-                conn.set_tunnel(host, port)
-                
-                # If proxy requires authentication, add credentials to tunnel headers
-                if proxy_user and proxy_pass:
-                    # Encode credentials for HTTP Basic authentication
-                    credentials = f"{proxy_user}:{proxy_pass}"
-                    encoded_credentials = base64.b64encode(credentials.encode()).decode()
-                    
-                    # Set tunnel headers with proxy authentication
-                    # Note: We're accessing internal attributes here, which is necessary
-                    # for adding authentication to the CONNECT tunnel
-                    # Type ignore comments are needed as these are internal implementation details
-                    conn._tunnel_host = host  # type: ignore[attr-defined]
-                    conn._tunnel_port = port  # type: ignore[attr-defined]
-                    conn._tunnel_headers = {  # type: ignore[attr-defined]
-                        'Proxy-Authorization': f'Basic {encoded_credentials}',
-                        'Proxy-Connection': 'Keep-Alive'
-                    }
-            else:
-                # Direct connection without proxy
-                conn = http.client.HTTPSConnection(host, port, timeout=30)
-            
-            # Make the API request
-            url = "/v5/ibm/deployables"
-            conn.request("GET", url, headers=headers)
-            response = conn.getresponse()
-            data = response.read().decode()
+    # Construct the full URL
+    url = f"{api_endpoint}/v5/ibm/deployables"
 
-            if response.status != 200:
-                # For 5xx errors, retry; for 4xx errors, fail immediately
-                if 500 <= response.status < 600:
-                    raise RuntimeError(
-                        f"API request failed with server error: {response.status} {response.reason}"
-                    )
+    last_exception = None
+
+    for attempt in range(max_retries + 1):  # +1 to include the initial attempt
+        try:
+            # requests library automatically uses HTTP_PROXY/HTTPS_PROXY environment variables
+            # and respects NO_PROXY for exclusions
+            response = requests.get(
+                url,
+                headers=headers,
+                timeout=30,  # 30 second timeout
+                verify=True,  # Verify SSL certificates (respects REQUESTS_CA_BUNDLE env var)
+            )
+
+            if response.status_code != 200:
+                error_msg = (
+                    f"API request failed: {response.status_code} {response.reason}"
+                )
+
+                # Include response body for debugging if available
+                try:
+                    error_msg += f" - {response.text}"
+                except Exception:
+                    pass
+
+                # Only retry on server errors (5xx) or rate limiting (429)
+                status = response.status_code
+                should_retry = status >= 500 or status == 429
+
+                if should_retry and attempt < max_retries:
+                    time.sleep(retry_delay)
+                    continue
                 else:
-                    # Client error - don't retry
-                    raise RuntimeError(
-                        f"API request failed: {response.status} {response.reason} - {data}"
-                    )
+                    raise RuntimeError(error_msg)
 
             # Success - return the parsed JSON
-            return json.loads(data)
-            
-        except (http.client.HTTPException, ConnectionError, TimeoutError) as e:
-            # These are retryable errors
+            return response.json()
+
+        except requests.exceptions.RequestException as e:
             last_exception = e
-            if attempt < max_retries - 1:
-                # Calculate exponential backoff delay
-                wait_time = retry_delay * (2 ** attempt)
-                sys.stderr.write(
-                    f"Attempt {attempt + 1}/{max_retries} failed: {str(e)}. "
-                    f"Retrying in {wait_time} seconds...\n"
-                )
-                time.sleep(wait_time)
+
+            # If this is not the last attempt, silently retry
+            # we don't want to print logs for retry as they are going as input to terraform's external data block and it will break the json output expected by terraform
+            if attempt < max_retries:
+                time.sleep(retry_delay)
             else:
-                # Last attempt failed
-                raise RuntimeError(
-                    f"All {max_retries} retry attempts failed. Last error: {str(e)}"
-                ) from e
-                
-        except json.JSONDecodeError as e:
-            # JSON parsing error - don't retry
-            raise RuntimeError(f"Failed to parse API response as JSON: {str(e)}") from e
-            
-        except Exception as e:
-            # Unexpected error - don't retry
-            raise RuntimeError(f"Connection error: {str(e)}") from e
-            
-        finally:
-            if conn is not None:
-                conn.close()
-    
-    # If we get here, all retries failed
-    if last_exception:
-        raise RuntimeError(
-            f"All {max_retries} retry attempts failed. Last error: {str(last_exception)}"
-        ) from last_exception
-    else:
-        raise RuntimeError(f"All {max_retries} retry attempts failed with unknown error")
+                # Last attempt failed, raise the exception with helpful message
+                error_msg = f"HTTP request failed after {max_retries + 1} attempts: {e}"
+
+                # Add proxy hint if it's a connection error
+                if isinstance(e, (ConnectionError, ProxyError)):
+                    error_msg += "\nHint: If you're behind a corporate proxy, set HTTPS_PROXY environment variable"
+
+                raise RuntimeError(error_msg) from last_exception
 
 
 def transform_data(deployables_data, db_type):
@@ -284,7 +211,6 @@ def main():
     iam_token, region, db_type = validate_inputs(data)
 
     api_endpoint = get_api_endpoint(region)
-    
     deployables_data = fetch_icd_deployables(iam_token, api_endpoint)
     versions, preferred_version, latest_version = transform_data(
         deployables_data, db_type
