@@ -9,4 +9,4 @@
 </p>
 <!-- END SCHEMATICS DEPLOY HOOK -->
 
-This example shows how to get the latest images using image-selector module. The region and api key are provided as valid input and latest image is fetched for that region.
+This example shows how to get the latest image using the image-selector module. The region and API key are provided as inputs, and the module can optionally filter Ubuntu images by a specific release version such as `20`, `22`, or `24`.

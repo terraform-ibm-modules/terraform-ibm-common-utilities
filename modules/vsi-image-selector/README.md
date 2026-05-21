@@ -1,10 +1,10 @@
 # Virtual Server Instance (VSI) image selector module
 
-This Terraform module retrieves the most recent IBM Cloud VPC image based on a specified operating system and architecture.
+This Terraform module retrieves the most recent IBM Cloud VPC image based on a specified operating system, optional operating system version, and architecture.
 
-This module enables filtering of IBM Cloud images based on operating system and system architecture. It currently supports `ubuntu` as the operating system and `amd64` or `s390x` as valid architecture options.
+This module enables filtering of IBM Cloud images based on operating system, optional operating system version, and system architecture. It currently supports `ubuntu` as the operating system and `amd64` or `s390x` as valid architecture options.
 
-By applying semantic sorting to image names, the module identifies and returns the most recent image available. The resulting image ID and name can be seamlessly integrated into downstream resources such as virtual server instance provisioning. Refer [here](https://cloud.ibm.com/docs/vpc?topic=vpc-about-images) for more information.
+After filtering the image list, the module selects the newest matching image by the image creation timestamp. The resulting image ID and name can be seamlessly integrated into downstream resources such as virtual server instance provisioning. Refer [here](https://cloud.ibm.com/docs/vpc?topic=vpc-about-images) for more information.
 
 > Note: IBM Cloud image IDs are region-specific, so ensure that the provider block is configured with the correct region when consuming this module.
 
@@ -18,9 +18,11 @@ provider "ibm" {
 }
 
 module "filtered_images" {
-  source           = "terraform-ibm-modules/common-utilities/ibm//modules/vsi-image-selector"
-  version          = "X.Y.Z" # Replace "X.Y.Z" to lock into a specific release
-  architecture     = "amd64" # OS Architecture for filtering.
+  source                   = "terraform-ibm-modules/common-utilities/ibm//modules/vsi-image-selector"
+  version                  = "X.Y.Z" # Replace "X.Y.Z" to lock into a specific release
+  architecture             = "amd64" # OS Architecture for filtering.
+  operating_system         = "ubuntu"
+  operating_system_version = "22"
 }
 ```
 
@@ -52,9 +54,10 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_architecture"></a> [architecture](#input\_architecture) | Defines the target system architecture for image selection. The default is `amd64`. Valid options are `amd64` and `s390x`. | `string` | `"amd64"` | no |
-| <a name="input_image_status"></a> [image\_status](#input\_image\_status) | Optional value to provide status of the image. | `string` | `null` | no |
+| <a name="input_image_status"></a> [image\_status](#input\_image\_status) | Optional value to provide status of the image. | `string` | `"available"` | no |
 | <a name="input_is_catalog_managed"></a> [is\_catalog\_managed](#input\_is\_catalog\_managed) | Flag to get images which are managed as part of a catalog offering. | `bool` | `false` | no |
 | <a name="input_operating_system"></a> [operating\_system](#input\_operating\_system) | The operating system for image selection. Only `ubuntu` images are supported currently. | `string` | `"ubuntu"` | no |
+| <a name="input_operating_system_version"></a> [operating\_system\_version](#input\_operating\_system\_version) | Optional operating system version used to filter image names further, such as `20`, `22`, or `24` for Ubuntu releases. | `string` | `null` | no |
 | <a name="input_visibility"></a> [visibility](#input\_visibility) | Defines the visibility level of the image. Accepted values are `public` and `private`. Defaults to `public`. | `string` | `"public"` | no |
 
 ### Outputs
