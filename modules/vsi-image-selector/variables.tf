@@ -16,7 +16,7 @@ variable "visibility" {
 variable "image_status" {
   description = "Optional value to provide status of the image."
   type        = string
-  default     = null
+  default     = "available"
 
   validation {
     condition     = var.image_status == null ? true : contains(["available", "deleting", "deprecated", "failed", "obsolete", "pending", "unusable"], var.image_status)
