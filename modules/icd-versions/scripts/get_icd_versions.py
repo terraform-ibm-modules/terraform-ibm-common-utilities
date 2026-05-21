@@ -131,7 +131,6 @@ def fetch_icd_deployables(iam_token, api_endpoint, max_retries=3, retry_delay=10
                 # Last attempt failed, raise the exception with helpful message
                 error_msg = f"HTTP request failed after {max_retries + 1} attempts: {e}"
 
-                # Add proxy hint if it's a connection error
                 if isinstance(e, (ConnectionError, ProxyError)):
                     error_msg += "\nHint: If you're behind a corporate proxy, set HTTPS_PROXY environment variable"
 

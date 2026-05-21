@@ -1,6 +1,5 @@
-# Install Python requirements before running the script
-resource "null_resource" "install_python_requirements" {
-  triggers = {
+resource "terraform_data" "install_python_requirements" {
+  triggers_replace = {
     requirements_hash = filemd5("${path.module}/scripts/requirements.txt")
   }
 
@@ -14,7 +13,7 @@ resource "null_resource" "install_python_requirements" {
 data "ibm_iam_auth_token" "tokendata" {}
 
 data "external" "icd_versions" {
-  depends_on = [null_resource.install_python_requirements]
+  depends_on = [terraform_data.install_python_requirements]
 
   program = ["python3", "${path.module}/scripts/get_icd_versions.py"]
   query = {
