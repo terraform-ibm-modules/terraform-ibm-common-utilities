@@ -16,7 +16,7 @@ variable "visibility" {
 variable "image_status" {
   description = "Optional value to provide status of the image."
   type        = string
-  default     = null
+  default     = "available"
 
   validation {
     condition     = var.image_status == null ? true : contains(["available", "deleting", "deprecated", "failed", "obsolete", "pending", "unusable"], var.image_status)
@@ -44,6 +44,12 @@ variable "operating_system" {
     condition     = var.operating_system == "ubuntu"
     error_message = "Only 'ubuntu' is supported as a valid operating system."
   }
+}
+
+variable "operating_system_version" {
+  description = "Optional operating system version used to filter image names further, such as `20`, `22`, or `24` for Ubuntu releases."
+  type        = string
+  default     = null
 }
 
 variable "is_catalog_managed" {
