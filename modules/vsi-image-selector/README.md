@@ -54,7 +54,7 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_architecture"></a> [architecture](#input\_architecture) | Defines the target system architecture for image selection. The default is `amd64`. Valid options are `amd64` and `s390x`. | `string` | `"amd64"` | no |
-| <a name="input_image_status"></a> [image\_status](#input\_image\_status) | Optional value to provide status of the image. | `string` | `null` | no |
+| <a name="input_image_status"></a> [image\_status](#input\_image\_status) | Optional value to provide status of the image. | `string` | `"available"` | no |
 | <a name="input_is_catalog_managed"></a> [is\_catalog\_managed](#input\_is\_catalog\_managed) | Flag to get images which are managed as part of a catalog offering. | `bool` | `false` | no |
 | <a name="input_operating_system"></a> [operating\_system](#input\_operating\_system) | The operating system for image selection. Only `ubuntu` images are supported currently. | `string` | `"ubuntu"` | no |
 | <a name="input_operating_system_version"></a> [operating\_system\_version](#input\_operating\_system\_version) | Optional operating system version used to filter image names further, such as `20`, `22`, or `24` for Ubuntu releases. | `string` | `null` | no |
