@@ -2,15 +2,9 @@ locals {
   python_deps_path = "/tmp"
 }
 
-# Ensure Python3 and pip are installed
-data "external" "ensure_python_pip" {
-  program = ["bash", "${path.module}/scripts/ensure-python-pip.sh", local.python_deps_path]
-}
-
-# Install Python packages from requirements.txt
+# Ensure Python3, pip are installed and install Python packages from requirements.txt
 data "external" "install_python_packages" {
-  depends_on = [data.external.ensure_python_pip]
-
+  count   = var.auto_install_dependencies ? 1 : 0
   program = ["bash", "${path.module}/scripts/install-packages.sh", local.python_deps_path]
 }
 

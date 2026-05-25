@@ -115,8 +115,9 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [terraform_data.install_python_requirements](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
+| [external_external.ensure_python_pip](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
 | [external_external.icd_versions](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
+| [external_external.install_python_packages](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
 | [ibm_iam_auth_token.tokendata](https://registry.terraform.io/providers/ibm-cloud/ibm/latest/docs/data-sources/iam_auth_token) | data source |
 
 ### Inputs
