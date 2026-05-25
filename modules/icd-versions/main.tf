@@ -2,21 +2,23 @@ locals {
   python_deps_path = "/tmp"
 }
 
-resource "terraform_data" "install_python_requirements" {
-  triggers_replace = {
-    auto_install_dependencies = var.auto_install_dependencies
-  }
+# Ensure Python3 and pip are installed
+data "external" "ensure_python_pip" {
+  program = ["bash", "${path.module}/scripts/ensure-python-pip.sh", local.python_deps_path]
+}
 
-  provisioner "local-exec" {
-    command     = "bash ${path.module}/scripts/install-python-deps.sh ${local.python_deps_path}"
-    interpreter = ["/bin/bash", "-c"]
-  }
+# Install Python packages from requirements.txt
+data "external" "install_python_packages" {
+  depends_on = [data.external.ensure_python_pip]
+
+  program = ["bash", "${path.module}/scripts/install-packages.sh", local.python_deps_path]
 }
 
 data "ibm_iam_auth_token" "tokendata" {}
 
+# Fetch ICD versions
 data "external" "icd_versions" {
-  depends_on = [terraform_data.install_python_requirements]
+  depends_on = [data.external.install_python_packages]
 
   program = ["python3", "${path.module}/scripts/get_icd_versions.py", local.python_deps_path]
   query = {
