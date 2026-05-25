@@ -4,6 +4,14 @@ import os
 import sys
 import time
 
+# Add the custom Python dependencies path to sys.path if provided as argument
+if len(sys.argv) > 1:
+    python_deps_path = sys.argv[1]
+    if python_deps_path not in sys.path:
+        sys.path.insert(0, python_deps_path)
+    # Remove the path argument so it doesn't interfere with stdin reading
+    sys.argv.pop(1)
+
 import requests
 from requests.exceptions import ConnectionError, ProxyError
 

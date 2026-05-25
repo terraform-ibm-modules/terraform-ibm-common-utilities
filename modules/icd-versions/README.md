@@ -6,25 +6,37 @@ This terraform module uses an external data block to call the ICD API endpoint u
 
 ### Python Requirements
 
-- **Python 3.x** is required
+- **Python 3.x** is required (automatically installed if not present)
+- **pip** is required (automatically installed if not present)
 
 #### Automatic Dependency Installation
 
-This module **automatically installs** the required `requests` library when you run `terraform apply` or `terraform plan`. The installation:
+This module **automatically installs** the required `requests` library when you run `terraform apply` or `terraform plan`. The installation process:
 
-- Checks if `requests` is already installed before attempting installation
-- Uses `pip install --user` to install packages in your user directory if not found
-- Only runs when the `requirements.txt` file changes
+1. **Checks for Python3**: If not found, attempts to install it based on your OS (macOS via Homebrew, Debian/Ubuntu via apt, RHEL/CentOS/Fedora via dnf/yum)
+2. **Checks for pip**: If not found, installs it using `ensurepip` or `get-pip.py`
+3. **Installs requests library**: Installs `requests>=2.31.0` to `/tmp` directory
+4. **Triggers on variable change**: Reinstalls when `auto_install_dependencies` variable changes
 
-The installation command used is:
+The installation uses the `common-bash-library` pattern from terraform-ibm-modules for consistency across modules.
 
-```bash
-python3 -c "import requests" 2>/dev/null || python3 -m pip install --user -q -r requirements.txt
+#### Disabling Automatic Installation
+
+If you prefer to manage dependencies yourself (e.g., in CI/CD environments where dependencies are pre-installed):
+
+```hcl
+module "icd_versions" {
+  source                    = "terraform-ibm-modules/common-utilities/ibm//modules/icd-versions"
+  version                   = "X.Y.Z"
+  icd_type                  = "redis"
+  region                    = "us-south"
+  auto_install_dependencies = false  # Disable automatic installation
+}
 ```
 
 #### Manual Pre-Installation (Optional)
 
-If you prefer to pre-install dependencies manually:
+If you set `auto_install_dependencies = false`, ensure the `requests` library is available:
 
 ```bash
 pip install requests>=2.31.0
@@ -111,6 +123,7 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_auto_install_dependencies"></a> [auto\_install\_dependencies](#input\_auto\_install\_dependencies) | Set to true to automatically install Python dependencies (requests library). Set to false if dependencies are pre-installed in your environment. | `bool` | `true` | no |
 | <a name="input_icd_type"></a> [icd\_type](#input\_icd\_type) | The type of the ICD. | `string` | n/a | yes |
 | <a name="input_region"></a> [region](#input\_region) | The region in which you want to list the supported versions of an ICD. | `string` | n/a | yes |
 

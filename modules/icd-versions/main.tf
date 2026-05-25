@@ -1,12 +1,15 @@
+locals {
+  python_deps_path = "/tmp"
+}
+
 resource "terraform_data" "install_python_requirements" {
   triggers_replace = {
-    requirements_hash = filemd5("${path.module}/scripts/requirements.txt")
+    auto_install_dependencies = var.auto_install_dependencies
   }
 
   provisioner "local-exec" {
-    command = <<-EOT
-      python3 -c "import requests" 2>/dev/null || python3 -m pip install --user -q -r ${path.module}/scripts/requirements.txt
-    EOT
+    command     = "bash ${path.module}/scripts/install-python-deps.sh ${local.python_deps_path}"
+    interpreter = ["/bin/bash", "-c"]
   }
 }
 
@@ -15,7 +18,7 @@ data "ibm_iam_auth_token" "tokendata" {}
 data "external" "icd_versions" {
   depends_on = [terraform_data.install_python_requirements]
 
-  program = ["python3", "${path.module}/scripts/get_icd_versions.py"]
+  program = ["python3", "${path.module}/scripts/get_icd_versions.py", local.python_deps_path]
   query = {
     IAM_TOKEN = sensitive(data.ibm_iam_auth_token.tokendata.iam_access_token)
     REGION    = var.region
