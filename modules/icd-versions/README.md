@@ -22,7 +22,7 @@ The installation uses the `common-bash-library` pattern from terraform-ibm-modul
 
 #### Disabling Automatic Installation
 
-If you prefer to manage dependencies yourself (e.g., in CI/CD environments where dependencies are pre-installed):
+If you prefer to manage dependencies yourself:
 
 ```hcl
 module "icd_versions" {
@@ -33,8 +33,6 @@ module "icd_versions" {
   auto_install_dependencies = false  # Disable automatic installation
 }
 ```
-
-#### Manual Pre-Installation (Optional)
 
 If you set `auto_install_dependencies = false`, ensure the `requests` library is available:
 
@@ -78,6 +76,7 @@ module "icd_versions" {
   version          = "X.Y.Z" # Replace "X.Y.Z" to lock into a specific release
   icd_type         = "redis" # Replace with the ICD type of which you want to get the versions
   region           = "us-south" # Replace with the region in which you are trying to deploy the ICD
+  auto_install_dependencies = false # Set to true if you want to install the dependencies automatically
 }
 ```
 
@@ -115,7 +114,6 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [external_external.ensure_python_pip](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
 | [external_external.icd_versions](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
 | [external_external.install_python_packages](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
 | [ibm_iam_auth_token.tokendata](https://registry.terraform.io/providers/ibm-cloud/ibm/latest/docs/data-sources/iam_auth_token) | data source |
