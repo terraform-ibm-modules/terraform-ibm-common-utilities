@@ -69,12 +69,15 @@ fetch_icd_deployables() {
     local attempt=0
     local response
     local http_code
+    local body
 
     while [[ $attempt -le $max_retries ]]; do
-        response=$(curl -s -w "\n%{http_code}" \
+        response=$(curl -sS -w "\n%{http_code}" \
+            --connect-timeout 10 \
+            --max-time 20 \
             -H "Authorization: Bearer ${iam_token}" \
             -H "Accept: application/json" \
-            "$url" 2>&1) || {
+            "$url") || {
 
             if [[ $attempt -lt $max_retries ]]; then
                 ((attempt++))
@@ -90,6 +93,18 @@ fetch_icd_deployables() {
         response=$(echo "$response" | sed '$d')
 
         if [[ "$http_code" -eq 200 ]]; then
+            # Validate API response JSON
+            if ! jq -e . >/dev/null 2>&1 <<< "$body"; then
+                error "Invalid JSON response from API"
+            fi
+
+            # Validate expected response structure
+            if ! jq -e '
+                has("deployables") and
+                (.deployables | type == "array")
+            ' >/dev/null 2>&1 <<< "$body"; then
+                error "API response missing expected '\''deployables'\'' array"
+            fi
             echo "$response"
             return 0
         else
