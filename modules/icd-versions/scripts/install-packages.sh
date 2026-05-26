@@ -34,7 +34,7 @@ rm -f "${DIRECTORY}/common-bash.tar.gz"
 source "${DIRECTORY}/common-bash-library/common/common.sh"
 
 # Ensure Python3 and pip are installed
-ensure_python_and_pip >&2
+ensure_python_and_pip "${DIRECTORY}" >&2
 
 python3 -m pip install --upgrade --target="${DIRECTORY}" -r "${SCRIPT_DIR}/requirements.txt" --quiet --root-user-action=ignore >&2
 
