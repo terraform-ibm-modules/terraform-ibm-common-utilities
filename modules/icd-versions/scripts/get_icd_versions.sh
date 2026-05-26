@@ -2,15 +2,23 @@
 
 set -euo pipefail
 
+# Function to print error messages
+error() {
+    echo "Error: $*" >&2
+    exit 1
+}
+
 # Function to parse JSON input from stdin
 parse_input() {
     local input
+
     input=$(cat)
 
-    # Validate JSON
-    if ! echo "$input" | jq empty 2>/dev/null; then
-        echo "Error: Invalid JSON input" >&2
-        exit 1
+    [[ -z "$input" ]] && error "No JSON input provided"
+
+    # Validate JSON input
+    if ! jq -e . >/dev/null 2>&1 <<< "$input"; then
+        error "Invalid JSON input"
     fi
 
     echo "$input"
@@ -19,25 +27,21 @@ parse_input() {
 # Function to validate required inputs
 validate_inputs() {
     local data="$1"
-    local token region db_type
+    local token
+    local region
+    local db_type
 
-    token=$(echo "$data" | jq -r '.IAM_TOKEN // empty')
-    if [[ -z "$token" ]]; then
-        echo "Error: IAM_TOKEN is required" >&2
-        exit 1
-    fi
+    token=$(jq -r '.IAM_TOKEN // empty' <<< "$data")
+    [[ -z "$token" ]] && error "IAM_TOKEN is required"
 
-    region=$(echo "$data" | jq -r '.REGION // empty')
-    if [[ -z "$region" ]]; then
-        echo "Error: REGION is required" >&2
-        exit 1
-    fi
+    region=$(jq -r '.REGION // empty' <<< "$data")
+    [[ -z "$region" ]] && error "REGION is required"
 
-    db_type=$(echo "$data" | jq -r '.DB_TYPE // empty')
-    if [[ -z "$db_type" ]]; then
-        echo "Error: DB_TYPE is required" >&2
-        exit 1
-    fi
+    db_type=$(jq -r '.DB_TYPE // empty' <<< "$data")
+    [[ -z "$db_type" ]] && error "DB_TYPE is required"
+
+    # Remove optional Bearer prefix
+    token="${token#Bearer }"
 
     echo "$token|$region|$db_type"
 }
@@ -45,85 +49,56 @@ validate_inputs() {
 # Function to get API endpoint
 get_api_endpoint() {
     local region="$1"
-    local api_endpoint
 
-    api_endpoint="${IBMCLOUD_ICD_API_ENDPOINT:-}"
-    if [[ -z "$api_endpoint" ]]; then
-        api_endpoint="https://api.${region}.databases.cloud.ibm.com"
-    fi
-
-    echo "$api_endpoint"
+    echo "${IBMCLOUD_ICD_API_ENDPOINT:-https://api.${region}.databases.cloud.ibm.com}"
 }
 
-# Function to fetch ICD deployables with retry logic
+# Function to fetch ICD deployables
 fetch_icd_deployables() {
     local iam_token="$1"
     local api_endpoint="$2"
-    local max_retries="${3:-3}"
-    local retry_delay="${4:-10}"
-
-    # Remove 'Bearer ' prefix if present
-    iam_token="${iam_token#Bearer }"
 
     local url="${api_endpoint}/v5/ibm/deployables"
-    local attempt=0
     local response
     local http_code
     local body
 
-    while [[ $attempt -le $max_retries ]]; do
-        response=$(curl -sS -w "\n%{http_code}" \
-            --connect-timeout 10 \
-            --max-time 20 \
-            -H "Authorization: Bearer ${iam_token}" \
-            -H "Accept: application/json" \
-            "$url") || {
+    response=$(curl --silent \
+        --show-error \
+        --connect-timeout 5 \
+        --max-time 10 \
+        --retry 3 \
+        --retry-delay 2 \
+        --retry-connrefused \
+        --location \
+        -w "\n%{http_code}" \
+        -H "Authorization: Bearer ${iam_token}" \
+        -H "Accept: application/json" \
+        "$url") || error "HTTP request failed"
 
-            if [[ $attempt -lt $max_retries ]]; then
-                ((attempt++))
-                sleep "$retry_delay"
-                continue
-            else
-                echo "Error: HTTP request failed after $((max_retries + 1)) attempts" >&2
-                exit 1
-            fi
-        }
+    # Split response into body and status code
+    http_code="${response##*$'\n'}"
+    body="${response%$'\n'*}"
 
-        http_code=$(echo "$response" | tail -n1)
-        response=$(echo "$response" | sed '$d')
+    # Validate HTTP response
+    if [[ "$http_code" != "200" ]]; then
+        error "API request failed with HTTP ${http_code}: ${body}"
+    fi
 
-        if [[ "$http_code" -eq 200 ]]; then
-            # Validate API response JSON
-            if ! jq -e . >/dev/null 2>&1 <<< "$body"; then
-                error "Invalid JSON response from API"
-            fi
+    # Validate API response JSON
+    if ! jq -e . >/dev/null 2>&1 <<< "$body"; then
+        error "Invalid JSON response from API"
+    fi
 
-            # Validate expected response structure
-            if ! jq -e '
-                has("deployables") and
-                (.deployables | type == "array")
-            ' >/dev/null 2>&1 <<< "$body"; then
-                error "API response missing expected '\''deployables'\'' array"
-            fi
-            echo "$response"
-            return 0
-        else
-            # Check if we should retry (5xx errors or 429 rate limiting)
-            local should_retry=0
-            if [[ "$http_code" -ge 500 ]] || [[ "$http_code" -eq 429 ]]; then
-                should_retry=1
-            fi
+    # Validate expected response structure
+    if ! jq -e '
+        has("deployables") and
+        (.deployables | type == "array")
+    ' >/dev/null 2>&1 <<< "$body"; then
+        error "API response missing expected '\''deployables'\'' array"
+    fi
 
-            if [[ $should_retry -eq 1 ]] && [[ $attempt -lt $max_retries ]]; then
-                ((attempt++))
-                sleep "$retry_delay"
-                continue
-            else
-                echo "Error: API request failed: $http_code - $response" >&2
-                exit 1
-            fi
-        fi
-    done
+    echo "$body"
 }
 
 # Function to transform data and extract versions
@@ -131,32 +106,43 @@ transform_data() {
     local deployables_data="$1"
     local db_type="$2"
 
-    # Extract versions for the specific DB_TYPE
-    local versions preferred_version latest_version
+    local versions
+    local preferred_version
+    local latest_version
 
-    # Use jq to filter and extract data
-    versions=$(echo "$deployables_data" | jq -r --arg dbtype "$db_type" '
+    # Extract valid versions
+    versions=$(jq -c --arg dbtype "$db_type" '
+        [
+            .deployables[]
+            | select(.type == $dbtype)
+            | .versions[]
+            | select(.status != "dead" and .status != "hidden")
+            | .version
+        ]
+    ' <<< "$deployables_data")
+
+    # Extract preferred version
+    preferred_version=$(jq -r --arg dbtype "$db_type" '
         .deployables[]
         | select(.type == $dbtype)
         | .versions[]
-        | select(.status != "dead" and .status != "hidden")
+        | select(
+            .status != "dead"
+            and .status != "hidden"
+            and .is_preferred == true
+        )
         | .version
-    ' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+    ' <<< "$deployables_data" | head -n1)
 
-    preferred_version=$(echo "$deployables_data" | jq -r --arg dbtype "$db_type" '
-        .deployables[]
-        | select(.type == $dbtype)
-        | .versions[]
-        | select(.status != "dead" and .status != "hidden" and .is_preferred == true)
-        | .version
-    ' | head -n1)
+    preferred_version="${preferred_version:-}"
 
-    # If no preferred version found, set to empty string
-    [[ -z "$preferred_version" ]] && preferred_version=""
-
-    # Calculate latest version by sorting
+    # Determine latest version
     if [[ "$versions" != "[]" ]]; then
-        latest_version=$(echo "$versions" | jq -r '.[]' | sort -V | tail -n1)
+        latest_version=$(
+            jq -r '.[]' <<< "$versions" \
+            | sort -V \
+            | tail -n1
+        )
     else
         latest_version=""
     fi
@@ -171,11 +157,11 @@ format_for_terraform() {
     local latest_version="$3"
 
     jq -n \
-        --argjson versions "$versions" \
+        --arg versions "$versions" \
         --arg preferred "$preferred_version" \
         --arg latest "$latest_version" \
         '{
-            versions: ($versions | tostring),
+            versions: $versions,
             preferred_version: $preferred,
             latest_version: $latest
         }'
@@ -183,17 +169,9 @@ format_for_terraform() {
 
 # Main function
 main() {
-    # Check if jq is available
-    if ! command -v jq &> /dev/null; then
-        echo "Error: jq is required but not installed" >&2
-        exit 1
-    fi
-
-    # Check if curl is available
-    if ! command -v curl &> /dev/null; then
-        echo "Error: curl is required but not installed" >&2
-        exit 1
-    fi
+    # Check required dependencies
+    command -v jq >/dev/null 2>&1 || error "jq is required but not installed"
+    command -v curl >/dev/null 2>&1 || error "curl is required but not installed"
 
     # Parse input
     local data
@@ -202,6 +180,11 @@ main() {
     # Validate inputs
     local validated
     validated=$(validate_inputs "$data")
+
+    local iam_token
+    local region
+    local db_type
+
     IFS='|' read -r iam_token region db_type <<< "$validated"
 
     # Get API endpoint
@@ -215,9 +198,14 @@ main() {
     # Transform data
     local transformed
     transformed=$(transform_data "$deployables_data" "$db_type")
+
+    local versions
+    local preferred_version
+    local latest_version
+
     IFS='|' read -r versions preferred_version latest_version <<< "$transformed"
 
-    # Format and output for Terraform
+    # Format output for Terraform
     format_for_terraform "$versions" "$preferred_version" "$latest_version"
 }
 
