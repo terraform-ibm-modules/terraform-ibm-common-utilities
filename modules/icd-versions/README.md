@@ -1,44 +1,16 @@
 # ICD (IBM Cloud Database) versions
 
-This terraform module uses an external data block to call the ICD API endpoint using a python script to fetch the supported versions of an ICD and outputs the list of stable versions currently supported along with latest and preferred version.
+This terraform module uses an external data block to call the ICD API endpoint using a bash script to fetch the supported versions of an ICD and outputs the list of stable versions currently supported along with latest and preferred version.
 
 ## Prerequisites
 
-### Python Requirements
+### Script Requirements
 
-- **Python 3.x** is required (automatically installed if not present)
-- **pip** is required (automatically installed if not present)
+- **bash** is required
+- **curl** is required
+- **jq** is required
 
-#### Automatic Dependency Installation
-
-This module **automatically installs** the required `requests` library when you run `terraform apply` or `terraform plan`. The installation process:
-
-1. **Checks for Python3**: If not found, attempts to install it based on your OS (macOS via Homebrew, Debian/Ubuntu via apt, RHEL/CentOS/Fedora via dnf/yum)
-2. **Checks for pip**: If not found, installs it using `ensurepip` or `get-pip.py`
-3. **Installs requests library**: Installs `requests>=2.31.0` to `/tmp` directory
-4. **Triggers on variable change**: Reinstalls when `auto_install_dependencies` variable changes
-
-The installation uses the `common-bash-library` pattern from terraform-ibm-modules for consistency across modules.
-
-#### Disabling Automatic Installation
-
-If you prefer to manage dependencies yourself:
-
-```hcl
-module "icd_versions" {
-  source                    = "terraform-ibm-modules/common-utilities/ibm//modules/icd-versions"
-  version                   = "X.Y.Z"
-  icd_type                  = "redis"
-  region                    = "us-south"
-  auto_install_dependencies = false  # Disable automatic installation
-}
-```
-
-If you set `auto_install_dependencies = false`, ensure the `requests` library is available:
-
-```bash
-pip install requests>=2.31.0
-```
+Ensure `curl` and `jq` are available in the environment where Terraform runs.
 
 ### Corporate Proxy Configuration
 
@@ -60,8 +32,8 @@ export NO_PROXY="localhost,127.0.0.1,.internal.company.com"
 If your organization uses SSL inspection or custom CA certificates:
 
 ```bash
-# Point to your corporate CA bundle
-export REQUESTS_CA_BUNDLE="/path/to/corporate-ca-bundle.crt"
+# Point curl to your corporate CA bundle
+export CURL_CA_BUNDLE="/path/to/corporate-ca-bundle.crt"
 ```
 
 ## Usage
@@ -72,11 +44,10 @@ provider "ibm" {
 }
 
 module "icd_versions" {
-  source           = "terraform-ibm-modules/common-utilities/ibm//modules/icd-versions"
-  version          = "X.Y.Z" # Replace "X.Y.Z" to lock into a specific release
-  icd_type         = "redis" # Replace with the ICD type of which you want to get the versions
-  region           = "us-south" # Replace with the region in which you are trying to deploy the ICD
-  auto_install_dependencies = false # Set to true if you want to install the dependencies automatically
+  source   = "terraform-ibm-modules/common-utilities/ibm//modules/icd-versions"
+  version  = "X.Y.Z"    # Replace "X.Y.Z" to lock into a specific release
+  icd_type = "redis"    # Replace with the ICD type of which you want to get the versions
+  region   = "us-south" # Replace with the region in which you are trying to deploy the ICD
 }
 ```
 
@@ -115,14 +86,12 @@ No modules.
 | Name | Type |
 |------|------|
 | [external_external.icd_versions](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
-| [external_external.install_python_packages](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
 | [ibm_iam_auth_token.tokendata](https://registry.terraform.io/providers/ibm-cloud/ibm/latest/docs/data-sources/iam_auth_token) | data source |
 
 ### Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_auto_install_dependencies"></a> [auto\_install\_dependencies](#input\_auto\_install\_dependencies) | Set to true to automatically install Python dependencies (requests library). Set to false if dependencies are pre-installed in your environment. | `bool` | `true` | no |
 | <a name="input_icd_type"></a> [icd\_type](#input\_icd\_type) | The type of the ICD. | `string` | n/a | yes |
 | <a name="input_region"></a> [region](#input\_region) | The region in which you want to list the supported versions of an ICD. | `string` | n/a | yes |
 

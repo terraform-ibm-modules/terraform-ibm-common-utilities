@@ -1,20 +1,8 @@
-locals {
-  python_deps_path = "/tmp"
-}
-
-# Ensure Python3, pip are installed and install Python packages from requirements.txt
-data "external" "install_python_packages" {
-  count   = var.auto_install_dependencies ? 1 : 0
-  program = ["bash", "${path.module}/scripts/install-packages.sh", local.python_deps_path]
-}
-
 data "ibm_iam_auth_token" "tokendata" {}
 
 # Fetch ICD versions
 data "external" "icd_versions" {
-  depends_on = [data.external.install_python_packages]
-
-  program = ["python3", "${path.module}/scripts/get_icd_versions.py", local.python_deps_path]
+  program = ["bash", "${path.module}/scripts/get_icd_versions.sh"]
   query = {
     IAM_TOKEN = sensitive(data.ibm_iam_auth_token.tokendata.iam_access_token)
     REGION    = var.region
