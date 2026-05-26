@@ -12,30 +12,6 @@ This terraform module uses an external data block to call the ICD API endpoint u
 
 Ensure `curl` and `jq` are available in the environment where Terraform runs.
 
-### Corporate Proxy Configuration
-
-If you're running this module from behind a corporate proxy, configure the following environment variables:
-
-```bash
-# Set proxy for HTTPS requests
-export HTTPS_PROXY="http://proxy.company.com:8080"
-
-# Or with authentication
-export HTTPS_PROXY="http://username:password@proxy.company.com:8080" # pragma: allowlist secret
-
-# Optionally exclude certain hosts from proxy
-export NO_PROXY="localhost,127.0.0.1,.internal.company.com"
-```
-
-### Custom SSL Certificates
-
-If your organization uses SSL inspection or custom CA certificates:
-
-```bash
-# Point curl to your corporate CA bundle
-export CURL_CA_BUNDLE="/path/to/corporate-ca-bundle.crt"
-```
-
 ## Usage
 
 ```hcl
