@@ -1,0 +1,212 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Function to print error messages
+error() {
+    echo "Error: $*" >&2
+    exit 1
+}
+
+# Function to parse JSON input from stdin
+parse_input() {
+    local input
+
+    input=$(cat)
+
+    [[ -z "$input" ]] && error "No JSON input provided"
+
+    # Validate JSON input
+    if ! jq -e . >/dev/null 2>&1 <<< "$input"; then
+        error "Invalid JSON input"
+    fi
+
+    echo "$input"
+}
+
+# Function to validate required inputs
+validate_inputs() {
+    local data="$1"
+    local token
+    local region
+    local db_type
+
+    token=$(jq -r '.IAM_TOKEN // empty' <<< "$data")
+    [[ -z "$token" ]] && error "IAM_TOKEN is required"
+
+    region=$(jq -r '.REGION // empty' <<< "$data")
+    [[ -z "$region" ]] && error "REGION is required"
+
+    db_type=$(jq -r '.DB_TYPE // empty' <<< "$data")
+    [[ -z "$db_type" ]] && error "DB_TYPE is required"
+
+    # Remove optional Bearer prefix
+    token="${token#Bearer }"
+
+    echo "$token|$region|$db_type"
+}
+
+# Function to get API endpoint
+get_api_endpoint() {
+    local region="$1"
+
+    echo "${IBMCLOUD_ICD_API_ENDPOINT:-https://api.${region}.databases.cloud.ibm.com}"
+}
+
+# Function to fetch ICD deployables
+fetch_icd_deployables() {
+    local iam_token="$1"
+    local api_endpoint="$2"
+
+    local url="${api_endpoint}/v5/ibm/deployables"
+    local response
+    local http_code
+    local body
+
+    response=$(curl --silent \
+        --show-error \
+        --connect-timeout 5 \
+        --max-time 10 \
+        --retry 3 \
+        --retry-delay 2 \
+        --retry-connrefused \
+        --location \
+        -w "\n%{http_code}" \
+        -H "Authorization: Bearer ${iam_token}" \
+        -H "Accept: application/json" \
+        "$url") || error "HTTP request failed"
+
+    # Split response into body and status code
+    http_code="${response##*$'\n'}"
+    body="${response%$'\n'*}"
+
+    # Validate HTTP response
+    if [[ "$http_code" != "200" ]]; then
+        error "API request failed with HTTP ${http_code}: ${body}"
+    fi
+
+    # Validate API response JSON
+    if ! jq -e . >/dev/null 2>&1 <<< "$body"; then
+        error "Invalid JSON response from API"
+    fi
+
+    # Validate expected response structure
+    if ! jq -e '
+        has("deployables") and
+        (.deployables | type == "array")
+    ' >/dev/null 2>&1 <<< "$body"; then
+        error "API response missing expected '\''deployables'\'' array"
+    fi
+
+    echo "$body"
+}
+
+# Function to transform data and extract versions
+transform_data() {
+    local deployables_data="$1"
+    local db_type="$2"
+
+    local versions
+    local preferred_version
+    local latest_version
+
+    # Extract valid versions
+    versions=$(jq -c --arg dbtype "$db_type" '
+        [
+            .deployables[]
+            | select(.type == $dbtype)
+            | .versions[]
+            | select(.status != "dead" and .status != "hidden")
+            | .version
+        ]
+    ' <<< "$deployables_data")
+
+    # Extract preferred version
+    preferred_version=$(jq -r --arg dbtype "$db_type" '
+        .deployables[]
+        | select(.type == $dbtype)
+        | .versions[]
+        | select(
+            .status != "dead"
+            and .status != "hidden"
+            and .is_preferred == true
+        )
+        | .version
+    ' <<< "$deployables_data" | head -n1)
+
+    preferred_version="${preferred_version:-}"
+
+    # Determine latest version
+    if [[ "$versions" != "[]" ]]; then
+        latest_version=$(
+            jq -r '.[]' <<< "$versions" \
+            | sort -V \
+            | tail -n1
+        )
+    else
+        latest_version=""
+    fi
+
+    echo "$versions|$preferred_version|$latest_version"
+}
+
+# Function to format output for Terraform
+format_for_terraform() {
+    local versions="$1"
+    local preferred_version="$2"
+    local latest_version="$3"
+
+    jq -n \
+        --arg versions "$versions" \
+        --arg preferred "$preferred_version" \
+        --arg latest "$latest_version" \
+        '{
+            versions: $versions,
+            preferred_version: $preferred,
+            latest_version: $latest
+        }'
+}
+
+# Main function
+main() {
+    # Check required dependencies
+    command -v jq >/dev/null 2>&1 || error "jq is required but not installed"
+    command -v curl >/dev/null 2>&1 || error "curl is required but not installed"
+
+    # Parse input
+    local data
+    data=$(parse_input)
+
+    # Validate inputs
+    local validated
+    validated=$(validate_inputs "$data")
+
+    local iam_token
+    local region
+    local db_type
+
+    IFS='|' read -r iam_token region db_type <<< "$validated"
+
+    # Get API endpoint
+    local api_endpoint
+    api_endpoint=$(get_api_endpoint "$region")
+
+    # Fetch deployables data
+    local deployables_data
+    deployables_data=$(fetch_icd_deployables "$iam_token" "$api_endpoint")
+
+    # Transform data
+    local transformed
+    transformed=$(transform_data "$deployables_data" "$db_type")
+
+    local versions
+    local preferred_version
+    local latest_version
+
+    IFS='|' read -r versions preferred_version latest_version <<< "$transformed"
+
+    # Format output for Terraform
+    format_for_terraform "$versions" "$preferred_version" "$latest_version"
+}
+
+main

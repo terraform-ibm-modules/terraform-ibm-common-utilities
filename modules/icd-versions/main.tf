@@ -1,7 +1,8 @@
 data "ibm_iam_auth_token" "tokendata" {}
 
+# Fetch ICD versions
 data "external" "icd_versions" {
-  program = ["python3", "${path.module}/scripts/get_icd_versions.py"]
+  program = ["bash", "${path.module}/scripts/get_icd_versions.sh"]
   query = {
     IAM_TOKEN = sensitive(data.ibm_iam_auth_token.tokendata.iam_access_token)
     REGION    = var.region

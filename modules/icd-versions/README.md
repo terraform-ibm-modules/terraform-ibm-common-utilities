@@ -1,38 +1,47 @@
 # ICD (IBM Cloud Database) versions
 
-This terraform module uses an external data block to call the ICD API endpoint using a python script to fetch the supported versions of an ICD and outputs the list of stable versions currently supported along with latest and preferred version. Python version 3 is required for the external data block to run without issues.
+This terraform module uses an external data block to call the ICD API endpoint using a bash script to fetch the supported versions of an ICD and outputs the list of stable versions currently supported along with latest and preferred version.
 
-### Usage
+## Prerequisites
+
+### Script Requirements
+
+- **bash** is required
+- **curl** is required
+- **jq** is required
+
+Ensure `curl` and `jq` are available in the environment where Terraform runs.
+
+## Usage
 
 ```hcl
-
 provider "ibm" {
   ibmcloud_api_key = "xxx123xxxxx" # Provide valid IBM Cloud API key.
 }
 
 module "icd_versions" {
-  source           = "terraform-ibm-modules/common-utilities/ibm//modules/icd-versions"
-  version          = "X.Y.Z" # Replace "X.Y.Z" to lock into a specific release
-  icd_type         = "redis" # Replace with the ICD type of which you want to get the versions
-  region           = "us-south" # Replace with the region in which you are trying to deploy the ICD
+  source   = "terraform-ibm-modules/common-utilities/ibm//modules/icd-versions"
+  version  = "X.Y.Z"    # Replace "X.Y.Z" to lock into a specific release
+  icd_type = "redis"    # Replace with the ICD type of which you want to get the versions
+  region   = "us-south" # Replace with the region in which you are trying to deploy the ICD
 }
 ```
 
 ### Required IAM access policies
 
 - IAM Services
-    - **Databases for Redis** service
-        - `Viewer` role access
-    - **Databases for PostgreSQL** service
-        - `Viewer` role access
-    - **Databases for RabbitMQ** service
-        - `Viewer` role access
-    - **Databases for MySQL** service
-        - `Viewer` role access
-    - **Databases for MongoDB** service
-        - `Viewer` role access
-    - **Databases for Elasticsearch** service
-        - `Viewer` role access
+  - **Databases for Redis** service
+    - `Viewer` role access
+  - **Databases for PostgreSQL** service
+    - `Viewer` role access
+  - **Databases for RabbitMQ** service
+    - `Viewer` role access
+  - **Databases for MySQL** service
+    - `Viewer` role access
+  - **Databases for MongoDB** service
+    - `Viewer` role access
+  - **Databases for Elasticsearch** service
+    - `Viewer` role access
 
 <!-- The following content is automatically populated by the pre-commit hook -->
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
