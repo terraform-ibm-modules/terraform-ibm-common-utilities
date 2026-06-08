@@ -33,6 +33,7 @@ You can reference any utility in this repo from your Terraform project by pointi
   <li><a href="./modules">Submodules</a>
     <ul>
       <li><a href="./modules/crn-parser">crn-parser</a></li>
+      <li><a href="./modules/icd-flavors">icd-flavors</a></li>
       <li><a href="./modules/icd-versions">icd-versions</a></li>
       <li><a href="./modules/vsi-image-selector">vsi-image-selector</a></li>
     </ul>
@@ -42,6 +43,10 @@ You can reference any utility in this repo from your Terraform project by pointi
       <li>
         <a href="./examples/crn-parser">CRN parser example</a>
         <a href="https://cloud.ibm.com/schematics/workspaces/create?workspace_name=common-utilities-crn-parser-example&repository=https://github.com/terraform-ibm-modules/terraform-ibm-common-utilities/tree/main/examples/crn-parser"><img src="https://img.shields.io/badge/Deploy%20with%20IBM%20Cloud%20Schematics-0f62fe?style=flat&logo=ibm&logoColor=white&labelColor=0f62fe" alt="Deploy with IBM Cloud Schematics" style="height: 16px; vertical-align: text-bottom; margin-left: 5px;"></a>
+      </li>
+      <li>
+        <a href="./examples/icd-flavor-selector">ICD Flavor Selector Example</a>
+        <a href="https://cloud.ibm.com/schematics/workspaces/create?workspace_name=common-utilities-icd-flavor-selector-example&repository=https://github.com/terraform-ibm-modules/terraform-ibm-common-utilities/tree/main/examples/icd-flavor-selector"><img src="https://img.shields.io/badge/Deploy%20with%20IBM%20Cloud%20Schematics-0f62fe?style=flat&logo=ibm&logoColor=white&labelColor=0f62fe" alt="Deploy with IBM Cloud Schematics" style="height: 16px; vertical-align: text-bottom; margin-left: 5px;"></a>
       </li>
       <li>
         <a href="./examples/icd-version-lister">ICD Version Lister</a>
