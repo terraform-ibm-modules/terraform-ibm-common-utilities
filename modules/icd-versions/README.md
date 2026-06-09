@@ -10,8 +10,6 @@ This terraform module uses an external data block to call the ICD API endpoint u
 
   **Note**: Fallback is only enabled for the `ca-mon` region due to known endpoint unavailability issues. Other regions will fail immediately if their endpoint is unavailable.
 
-- **Graceful Error Handling**: The script provides detailed logging about which endpoints are being tried and which ones succeed or fail, making troubleshooting easier.
-
 ## Prerequisites
 
 ### Script Requirements

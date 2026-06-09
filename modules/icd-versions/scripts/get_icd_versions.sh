@@ -80,8 +80,8 @@ fetch_icd_deployables() {
         --show-error \
         --connect-timeout 5 \
         --max-time 10 \
-        --retry 2 \
-        --retry-delay 1 \
+        --retry 3 \
+        --retry-delay 2 \
         --retry-connrefused \
         --location \
         -w "\n%{http_code}" \
@@ -115,7 +115,6 @@ fetch_icd_deployables() {
     return 0
 }
 
-# Function to fetch deployables with fallback logic
 fetch_with_fallback() {
     local iam_token="$1"
     local primary_region="$2"
@@ -136,10 +135,8 @@ fetch_with_fallback() {
 
     # Only use fallback for ca-mon region
     if [[ "$primary_region" != "ca-mon" ]]; then
-        error "API endpoint failed for region '${primary_region}'. Fallback is only available for ca-mon region."
+        error "API endpoint failed for region '${primary_region}'."
     fi
-
-    echo "Note: Fallback mechanism activated for ca-mon region" >&2
 
     # Try fallback regions
     local fallback_regions
@@ -159,7 +156,6 @@ fetch_with_fallback() {
         echo "Warning: Fallback endpoint ${fallback_endpoint} failed" >&2
     done
 
-    # All endpoints failed
     error "All API endpoints failed. Tried primary region '${primary_region}' and fallback regions: ${fallback_regions[*]}"
 }
 
