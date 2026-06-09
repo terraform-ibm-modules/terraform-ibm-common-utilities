@@ -66,7 +66,7 @@ get_fallback_regions() {
     fi
 }
 
-# Function to fetch ICD deployables with fallback support
+# Function to fetch ICD deployables
 fetch_icd_deployables() {
     local iam_token="$1"
     local api_endpoint="$2"
@@ -249,7 +249,7 @@ main() {
     local api_endpoint
     api_endpoint=$(get_api_endpoint "$region")
 
-    # Fetch deployables data with fallback support
+    # Fetch deployables data
     local deployables_data
     deployables_data=$(fetch_with_fallback "$iam_token" "$region")
 
