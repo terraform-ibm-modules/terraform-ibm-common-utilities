@@ -4,14 +4,11 @@ This terraform module uses an external data block to call the ICD API endpoint u
 
 ## Features
 
-- **Automatic Fallback**: If the primary regional endpoint is unavailable (e.g., `api.ca-mon.databases.cloud.ibm.com`), the module automatically attempts to fetch data from fallback regions in the following priority order:
-  1. `us-south`
-  2. `ca-tor`
-  3. `us-east`
-  4. `eu-gb`
-  5. `eu-de`
-  6. `jp-tok`
-  7. `au-syd`
+- **Automatic Fallback for ca-mon Region**: Since the Montreal (`ca-mon`) regional endpoint is unavailable (e.g., `api.ca-mon.databases.cloud.ibm.com`), the module automatically attempts to fetch data from fallback regions in the following priority order:
+  1. `ca-tor` (Toronto)
+  2. `us-south` (Dallas)
+
+  **Note**: Fallback is only enabled for the `ca-mon` region due to known endpoint unavailability issues. Other regions will fail immediately if their endpoint is unavailable.
 
 - **Graceful Error Handling**: The script provides detailed logging about which endpoints are being tried and which ones succeed or fail, making troubleshooting easier.
 

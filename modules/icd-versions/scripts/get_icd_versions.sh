@@ -53,22 +53,17 @@ get_api_endpoint() {
     echo "${IBMCLOUD_ICD_API_ENDPOINT:-https://api.${region}.databases.cloud.ibm.com}"
 }
 
-# Function to get fallback regions
+# Function to get fallback regions for ca-mon
 get_fallback_regions() {
     local primary_region="$1"
 
-    # Define fallback regions in priority order
-    # Exclude the primary region from fallbacks
-    local all_fallbacks=("us-south" "ca-tor" "us-east" "eu-gb" "eu-de" "jp-tok" "au-syd")
-    local fallbacks=()
-
-    for region in "${all_fallbacks[@]}"; do
-        if [[ "$region" != "$primary_region" ]]; then
-            fallbacks+=("$region")
-        fi
-    done
-
-    echo "${fallbacks[@]}"
+    # Only ca-mon region has fallback support
+    if [[ "$primary_region" == "ca-mon" ]]; then
+        # Fallback to ca-tor first, then us-south
+        echo "ca-tor us-south"
+    else
+        echo ""
+    fi
 }
 
 # Function to fetch ICD deployables with fallback support
@@ -138,6 +133,13 @@ fetch_with_fallback() {
     fi
 
     echo "Warning: Primary endpoint ${primary_endpoint} failed or is unavailable" >&2
+
+    # Only use fallback for ca-mon region
+    if [[ "$primary_region" != "ca-mon" ]]; then
+        error "API endpoint failed for region '${primary_region}'. Fallback is only available for ca-mon region."
+    fi
+
+    echo "Note: Fallback mechanism activated for ca-mon region" >&2
 
     # Try fallback regions
     local fallback_regions
