@@ -11,7 +11,7 @@ variable "ibmcloud_api_key" {
 variable "region" {
   type        = string
   description = "Region where the ICD will be deployed"
-  default     = "us-south"
+  default     = "ca-mon"
 }
 
 variable "icd_type" {

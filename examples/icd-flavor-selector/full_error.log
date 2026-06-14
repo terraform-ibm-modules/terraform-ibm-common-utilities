@@ -1,0 +1,25 @@
+[0m[1mmodule.icd_flavors.data.ibm_iam_auth_token.tokendata: Reading...[0m[0m
+[0m[1mmodule.icd_flavors.data.ibm_iam_auth_token.tokendata: Read complete after 0s [id=2026-06-14 19:41:19.452737 +0000 UTC][0m
+[0m[1mmodule.icd_flavors.data.external.icd_flavors: Reading...[0m[0m
+
+[0m[1m[31mPlanning failed.[0m[1m Terraform encountered an error while generating this plan.[0m
+
+[0m[31m╷[0m[0m
+[31m│[0m [0m[1m[31mError: [0m[0m[1mExternal Program Execution Failed[0m
+[31m│[0m [0m
+[31m│[0m [0m[0m  with module.icd_flavors.data.external.icd_flavors,
+[31m│[0m [0m  on ../../modules/icd-flavors/main.tf line 5, in data "external" "icd_flavors":
+[31m│[0m [0m   5:   program = [4m["bash", "${path.module}/scripts/get_icd_flavors.sh"][0m[0m
+[31m│[0m [0m
+[31m│[0m [0mThe data source received an unexpected error while attempting to execute
+[31m│[0m [0mthe program.
+[31m│[0m [0m
+[31m│[0m [0mProgram: /bin/bash
+[31m│[0m [0mError Message: Error: Catalog API request failed with HTTP 404:
+[31m│[0m [0m{"message":"Object \"databases-for-mongodb-standard-gen2:us-south\" does
+[31m│[0m [0mnot
+[31m│[0m [0mexists","code":404,"global_transaction_id":"7dee071a-e644-452b-ae35-d1c446b9a55c"}
+[31m│[0m [0m
+[31m│[0m [0m
+[31m│[0m [0mState: exit status 1
+[31m╵[0m[0m

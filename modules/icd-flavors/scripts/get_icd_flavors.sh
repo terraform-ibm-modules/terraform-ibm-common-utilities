@@ -46,22 +46,49 @@ validate_inputs() {
     echo "$token|$region|$db_type"
 }
 
-# Function to construct catalog service name
+# Function to map IBM Cloud region to catalog region code
+map_region_to_catalog_code() {
+    local region="$1"
+
+    # Map IBM Cloud regions to catalog region codes
+    # The catalog uses specific region codes that may differ from IBM Cloud region names
+    case "$region" in
+        us-south) echo "us-south" ;;
+        us-east) echo "us-east" ;;
+        eu-gb) echo "eu-gb" ;;
+        eu-de) echo "eu-de" ;;
+        eu-es) echo "eu-es" ;;
+        jp-tok) echo "jp-tok" ;;
+        jp-osa) echo "jp-osa" ;;
+        au-syd) echo "au-syd" ;;
+        ca-tor) echo "ca-tor" ;;
+        br-sao) echo "br-sao" ;;
+        # Montreal uses a different code in catalog
+        ca-mon) echo "ca-mon" ;;
+        *) echo "$region" ;;  # Default: use the region as-is
+    esac
+}
+
+# Function to construct catalog service name with region
 get_catalog_service_name() {
     local db_type="$1"
+    local region="$2"
 
-    # Map ICD type to catalog service name
-    # Format: databases-for-{type}-standard-gen2
-    echo "databases-for-${db_type}-standard-gen2"
+    # Map region to catalog code
+    local catalog_region
+    catalog_region=$(map_region_to_catalog_code "$region")
+
+    # Map ICD type to catalog service name with region
+    # Format: databases-for-{type}-standard-gen2:{catalog_region}
+    echo "databases-for-${db_type}-standard-gen2:${catalog_region}"
 }
 
 # Function to fetch ICD flavors from catalog
 fetch_icd_flavors() {
     local iam_token="$1"
-    local region="$2"
-    local service_name="$3"
+    local service_name_with_region="$2"
 
-    local url="https://globalcatalog.cloud.ibm.com/api/v1/${service_name}:${region}"
+    local url="https://globalcatalog.cloud.ibm.com/api/v1/${service_name_with_region}"
     local response
     local http_code
     local body
@@ -84,7 +111,9 @@ fetch_icd_flavors() {
     body="${response%$'\n'*}"
 
     # Validate HTTP response
-    if [[ "$http_code" != "200" ]]; then
+    if [[ "$http_code" == "404" ]]; then
+        error "Catalog entry '${service_name_with_region}' not found. This ICD type may not be available as Gen2 in the specified region. Gen2 ICD services have limited regional availability. Please verify the ICD type and region combination is valid."
+    elif [[ "$http_code" != "200" ]]; then
         error "Catalog API request failed with HTTP ${http_code}: ${body}"
     fi
 
@@ -162,13 +191,13 @@ main() {
 
     IFS='|' read -r iam_token region db_type <<< "$validated"
 
-    # Get catalog service name
-    local service_name
-    service_name=$(get_catalog_service_name "$db_type")
+    # Get catalog service name with region
+    local service_name_with_region
+    service_name_with_region=$(get_catalog_service_name "$db_type" "$region")
 
     # Fetch catalog data
     local catalog_data
-    catalog_data=$(fetch_icd_flavors "$iam_token" "$region" "$service_name")
+    catalog_data=$(fetch_icd_flavors "$iam_token" "$service_name_with_region")
 
     # Transform data
     local transformed

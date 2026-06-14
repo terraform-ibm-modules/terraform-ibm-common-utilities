@@ -23,7 +23,7 @@ module "icd_flavors" {
   source   = "terraform-ibm-modules/common-utilities/ibm//modules/icd-flavors"
   version  = "X.Y.Z"    # Replace "X.Y.Z" to lock into a specific release
   icd_type = "mongodb"  # Replace with the ICD type of which you want to get the flavors
-  region   = "us-south" # Replace with the region in which you are trying to deploy the ICD
+  region   = "ca-mon"   # Replace with the region in which you are trying to deploy the ICD
 }
 
 # Use the output in your ICD resource
@@ -41,7 +41,10 @@ resource "ibm_database" "example" {
       allocation_count = 3
     }
 
-    member_host_flavor = module.icd_flavors.default_flavor
+    # Use the default flavor from the module
+    # Note: The flavor name from catalog (e.g., "4x20") needs to be mapped to the actual flavor ID
+    # For Gen2 MongoDB, flavor names like "4x20" correspond to flavor IDs like "bx3d.4x20"
+    member_host_flavor = "bx3d.${module.icd_flavors.default_flavor}"
   }
 }
 ```
@@ -51,6 +54,7 @@ resource "ibm_database" "example" {
 - This module is designed for **Gen2 (VPC) ICD services** which use the `databases-for-{type}-standard-gen2` catalog naming convention
 - Classic ICD services may have different catalog structures and are not currently supported
 - The module fetches flavors from the IBM Cloud Global Catalog API endpoint: `https://globalcatalog.cloud.ibm.com/api/v1/{service}:{region}`
+- **Regional Availability**: Gen2 ICD services have limited regional availability. Not all ICD types are available in all regions. For example, Gen2 MongoDB is currently only available in Montreal (`ca-mon`). If you specify an unsupported region, the module will fail with a clear error message indicating the catalog entry was not found.
 
 ### Required IAM access policies
 

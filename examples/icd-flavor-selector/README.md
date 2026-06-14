@@ -41,16 +41,14 @@ Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
 Outputs:
 
 available_flavors = [
-  "b3c.4x16.encrypted",
-  "b3c.8x32.encrypted",
-  "b3c.16x64.encrypted",
-  "b3c.32x128.encrypted",
-  "m3c.4x32.encrypted",
-  "m3c.8x64.encrypted",
-  "m3c.16x128.encrypted",
-  "m3c.32x256.encrypted"
+  "4x20",
+  "8x40",
+  "8x80",
+  "16x80",
+  "32x160",
+  "48x240"
 ]
-default_flavor = "b3c.4x16.encrypted"
+default_flavor = "4x20"
 ```
 
 ## Requirements
@@ -65,7 +63,7 @@ default_flavor = "b3c.4x16.encrypted"
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | ibmcloud_api_key | The IBM Cloud API Key | `string` | n/a | yes |
-| region | Region where the ICD will be deployed | `string` | `"us-south"` | no |
+| region | Region where the ICD will be deployed | `string` | `"ca-mon"` | no |
 | icd_type | The type of ICD service (e.g., mongodb, redis, postgresql) | `string` | `"mongodb"` | no |
 
 ## Outputs
@@ -84,13 +82,13 @@ module "icd_flavors" {
   source   = "terraform-ibm-modules/common-utilities/ibm//modules/icd-flavors"
   version  = "X.Y.Z"
   icd_type = "mongodb"
-  region   = "us-south"
+  region   = "ca-mon"
 }
 
 resource "ibm_database" "mongodb_instance" {
   name              = "my-mongodb"
   plan              = "standard"
-  location          = "us-south"
+  location          = "ca-mon"
   service           = "databases-for-mongodb"
   version           = "6.0"
 
@@ -102,7 +100,9 @@ resource "ibm_database" "mongodb_instance" {
     }
 
     # Use the default flavor from the module
-    member_host_flavor = module.icd_flavors.default_flavor
+    # Note: Flavor names from catalog need to be prefixed with the appropriate family
+    # For Gen2 MongoDB, use "bx3d." prefix
+    member_host_flavor = "bx3d.${module.icd_flavors.default_flavor}"
   }
 }
 ```
