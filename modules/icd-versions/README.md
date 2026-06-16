@@ -2,6 +2,14 @@
 
 This terraform module uses an external data block to call the ICD API endpoint using a bash script to fetch the supported versions of an ICD and outputs the list of stable versions currently supported along with latest and preferred version.
 
+## Features
+
+- **Automatic Fallback for ca-mon Region**: Since the Montreal (`ca-mon`) regional endpoint is unavailable (e.g., `api.ca-mon.databases.cloud.ibm.com`), the module automatically attempts to fetch data from fallback regions in the following priority order:
+  1. `ca-tor` (Toronto)
+  2. `us-south` (Dallas)
+
+  **Note**: Fallback is only enabled for the `ca-mon` region due to known endpoint unavailability issues. Other regions will fail immediately if their endpoint is unavailable.
+
 ## Prerequisites
 
 ### Script Requirements
