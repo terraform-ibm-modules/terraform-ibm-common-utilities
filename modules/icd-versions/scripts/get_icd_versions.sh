@@ -52,11 +52,22 @@ validate_inputs() {
     echo "$token|$region|$db_type|$plan|$service"
 }
 
-# Function to get API endpoint
 get_api_endpoint() {
-    local region="$1"
+    local type="$1"
+    local region="$2"
 
-    echo "${IBMCLOUD_ICD_API_ENDPOINT:-https://api.${region}.databases.cloud.ibm.com}"
+    case "$type" in
+        classic)
+            echo "${IBMCLOUD_ICD_API_ENDPOINT:-https://api.${region}.databases.cloud.ibm.com}"
+            ;;
+        gen2)
+            echo "${IBMCLOUD_CATALOG_ENDPOINT:-https://globalcatalog.cloud.ibm.com}"
+            ;;
+        *)
+            echo "Unknown endpoint type: $type" >&2
+            return 1
+            ;;
+    esac
 }
 
 # Function to get fallback regions for ca-mon
@@ -127,7 +138,7 @@ fetch_with_fallback() {
     local primary_endpoint
     local deployables_data
 
-    primary_endpoint=$(get_api_endpoint "$primary_region")
+    primary_endpoint=$(get_api_endpoint "classic" "$primary_region")
 
     # Try primary endpoint
     echo "Attempting to fetch from primary endpoint: ${primary_endpoint}" >&2
@@ -150,7 +161,7 @@ fetch_with_fallback() {
 
     for fallback_region in "${fallback_regions[@]}"; do
         local fallback_endpoint
-        fallback_endpoint=$(get_api_endpoint "$fallback_region")
+        fallback_endpoint=$(get_api_endpoint "classic" "$fallback_region")
 
         echo "Attempting fallback endpoint: ${fallback_endpoint}" >&2
         if deployables_data=$(fetch_icd_deployables "$iam_token" "$fallback_endpoint"); then
@@ -172,7 +183,10 @@ fetch_gen2_versions() {
     local plan="$3"
     local region="$4"
 
-    local url="https://globalcatalog.cloud.ibm.com/api/v1/${service}-${plan}:${region}"
+    local base_url
+    base_url=$(get_api_endpoint "gen2" "$region")
+
+    local url="${base_url}/api/v1/${service}-${plan}:${region}"
     local response
     local http_code
     local body
@@ -373,10 +387,6 @@ main() {
         gen2_data=$(fetch_gen2_versions "$iam_token" "$service" "$plan" "$region")
         transformed=$(transform_gen2_data "$gen2_data")
     else
-        # Gen1 database - use ICD API
-        local api_endpoint
-        api_endpoint=$(get_api_endpoint "$region")
-
         local deployables_data
         deployables_data=$(fetch_with_fallback "$iam_token" "$region")
         transformed=$(transform_data "$deployables_data" "$db_type")

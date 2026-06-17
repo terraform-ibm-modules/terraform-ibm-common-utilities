@@ -13,6 +13,7 @@ import (
 const crnParserExample = "examples/crn-parser"
 const getImagesExample = "examples/vsi-image-selector"
 const icdVersionListerExample = "examples/icd-version-lister"
+const icdVersionListerExampleGen2 = "examples/icd-version-lister-gen2"
 
 var validRegions = []string{
 	"us-south",
@@ -105,4 +106,28 @@ func TestIcdVersionLister(t *testing.T) {
 	for _, icd_type := range icd_types {
 		t.Run(icd_type, func(t *testing.T) { testIcdVersionLister(t, icd_type) })
 	}
+}
+
+
+func TestIcdVersionListerGen2(t *testing.T) {
+	t.Parallel()
+
+
+	options := setupOptions(t, icdVersionListerExampleGen2)
+	options.TerraformVars = map[string]interface{}{
+		"region":   "ca-mon",
+	}
+
+	output, err := options.RunTestConsistency()
+	assert.Nil(t, err, "This should not have errored")
+	assert.NotNil(t, output, "Expected some output")
+
+	if output != nil {
+		latestVersion := output.RawPlan.OutputChanges["latest_version"].After.(string)
+		preferredVersion := output.RawPlan.OutputChanges["preferred_version"].After.(string)
+
+		assert.NotEmpty(t, latestVersion, "latestVersion can't be empty")
+		assert.NotEmpty(t, preferredVersion, "preferredVersion can't be empty")
+	}
+
 }

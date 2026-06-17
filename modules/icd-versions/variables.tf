@@ -17,6 +17,15 @@ variable "plan" {
   default     = ""
   nullable    = false
   description = "The plan for Gen2 databases (e.g., 'standard-gen2', 'enterprise-gen2'). Must end with '-gen2' suffix for Gen2 databases. Leave empty for Gen1."
+
+  validation {
+    condition = (
+      !endswith(var.plan, "-gen2") ||
+      trimspace(var.service) != ""
+    )
+
+    error_message = "For Gen2 databases (when 'plan' ends with '-gen2'), it is mandatory to provide values for both 'plan' and 'service'."
+  }
 }
 
 variable "service" {
