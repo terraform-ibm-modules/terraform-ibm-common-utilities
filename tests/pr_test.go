@@ -108,14 +108,12 @@ func TestIcdVersionLister(t *testing.T) {
 	}
 }
 
-
 func TestIcdVersionListerGen2(t *testing.T) {
 	t.Parallel()
 
-
 	options := setupOptions(t, icdVersionListerExampleGen2)
 	options.TerraformVars = map[string]interface{}{
-		"region":   "ca-mon",
+		"region": "ca-mon",
 	}
 
 	output, err := options.RunTestConsistency()

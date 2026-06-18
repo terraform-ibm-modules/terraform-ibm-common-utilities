@@ -16,11 +16,11 @@ variable "plan" {
   type        = string
   default     = ""
   nullable    = false
-  description = "The plan for Gen2 databases (e.g., 'standard-gen2', 'enterprise-gen2'). Must end with '-gen2' suffix for Gen2 databases. Leave empty for Gen1."
+  description = "The plan for Gen2 databases (e.g., 'standard-gen2', 'enterprise-gen2'). Must end with '-gen2' suffix for Gen2 databases. Leave empty for Gen1. Note: For Gen2 databases, only the 'ca-mon' region is currently supported and only for PostgreSQL and MongoDB."
 
   validation {
     condition = (
-      !endswith(var.plan, "-gen2") ||
+      !endswith(lower(var.plan), "-gen2") ||
       trimspace(var.service) != ""
     )
 

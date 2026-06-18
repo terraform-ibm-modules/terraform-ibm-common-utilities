@@ -105,7 +105,7 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_icd_type"></a> [icd\_type](#input\_icd\_type) | The type of the ICD. | `string` | n/a | yes |
-| <a name="input_plan"></a> [plan](#input\_plan) | The plan for Gen2 databases (e.g., 'standard-gen2', 'enterprise-gen2'). Must end with '-gen2' suffix for Gen2 databases. Leave empty for Gen1. | `string` | `""` | no |
+| <a name="input_plan"></a> [plan](#input\_plan) | The plan for Gen2 databases (e.g., 'standard-gen2', 'enterprise-gen2'). Must end with '-gen2' suffix for Gen2 databases. Leave empty for Gen1. Note: For Gen2 databases, only the 'ca-mon' region is currently supported and only for PostgreSQL and MongoDB. | `string` | `""` | no |
 | <a name="input_region"></a> [region](#input\_region) | The region in which you want to list the supported versions of an ICD. | `string` | n/a | yes |
 | <a name="input_service"></a> [service](#input\_service) | The service name for Gen2 databases (e.g., 'databases-for-postgresql'). Required for Gen2 databases, leave empty for Gen1. | `string` | `""` | no |
 
