@@ -30,6 +30,8 @@ validate_inputs() {
     local token
     local region
     local db_type
+    local plan
+    local service
 
     token=$(jq -r '.IAM_TOKEN // empty' <<< "$data")
     [[ -z "$token" ]] && error "IAM_TOKEN is required"
@@ -40,17 +42,32 @@ validate_inputs() {
     db_type=$(jq -r '.DB_TYPE // empty' <<< "$data")
     [[ -z "$db_type" ]] && error "DB_TYPE is required"
 
+    # Get optional Gen2 parameters
+    plan=$(jq -r '.PLAN // empty' <<< "$data")
+    service=$(jq -r '.SERVICE // empty' <<< "$data")
+
     # Remove optional Bearer prefix
     token="${token#Bearer }"
 
-    echo "$token|$region|$db_type"
+    echo "$token|$region|$db_type|$plan|$service"
 }
 
-# Function to get API endpoint
 get_api_endpoint() {
-    local region="$1"
+    local type="$1"
+    local region="$2"
 
-    echo "${IBMCLOUD_ICD_API_ENDPOINT:-https://api.${region}.databases.cloud.ibm.com}"
+    case "$type" in
+        classic)
+            echo "${IBMCLOUD_ICD_API_ENDPOINT:-https://api.${region}.databases.cloud.ibm.com}"
+            ;;
+        gen2)
+            echo "${IBMCLOUD_CATALOG_ENDPOINT:-https://globalcatalog.cloud.ibm.com}"
+            ;;
+        *)
+            echo "Unknown endpoint type: $type" >&2
+            return 1
+            ;;
+    esac
 }
 
 # Function to get fallback regions for ca-mon
@@ -121,7 +138,7 @@ fetch_with_fallback() {
     local primary_endpoint
     local deployables_data
 
-    primary_endpoint=$(get_api_endpoint "$primary_region")
+    primary_endpoint=$(get_api_endpoint "classic" "$primary_region")
 
     # Try primary endpoint
     echo "Attempting to fetch from primary endpoint: ${primary_endpoint}" >&2
@@ -144,7 +161,7 @@ fetch_with_fallback() {
 
     for fallback_region in "${fallback_regions[@]}"; do
         local fallback_endpoint
-        fallback_endpoint=$(get_api_endpoint "$fallback_region")
+        fallback_endpoint=$(get_api_endpoint "classic" "$fallback_region")
 
         echo "Attempting fallback endpoint: ${fallback_endpoint}" >&2
         if deployables_data=$(fetch_icd_deployables "$iam_token" "$fallback_endpoint"); then
@@ -157,6 +174,68 @@ fetch_with_fallback() {
     done
 
     error "All API endpoints failed. Tried primary region '${primary_region}' and fallback regions: ${fallback_regions[*]}"
+}
+
+# Function to fetch Gen2 ICD versions
+fetch_gen2_versions() {
+    local iam_token="$1"
+    local service="$2"
+    local plan="$3"
+    local region="$4"
+
+    local base_url
+    base_url=$(get_api_endpoint "gen2" "$region")
+
+    local url="${base_url}/api/v1/${service}-${plan}:${region}"
+    local response
+    local http_code
+    local body
+
+    response=$(curl --silent \
+        --show-error \
+        --connect-timeout 5 \
+        --max-time 10 \
+        --retry 3 \
+        --retry-delay 2 \
+        --retry-connrefused \
+        --location \
+        -w "\n%{http_code}" \
+        -H "Authorization: Bearer ${iam_token}" \
+        -H "Accept: application/json" \
+        "$url") || error "HTTP request failed"
+
+    # Split response into body and status code
+    http_code="${response##*$'\n'}"
+    body="${response%$'\n'*}"
+
+    # Validate HTTP response
+    if [[ "$http_code" == "404" ]]; then
+        # Service not available in this region/plan combination
+        # Log warning to stderr (won't interfere with Terraform data)
+        echo "Warning: Service '${service}' with plan '${plan}' is not available in region '${region}'" >&2
+        # Return empty structure that will result in empty versions
+        echo '{"metadata":{"other":{"versions":[]}}}'
+        return 0
+    elif [[ "$http_code" != "200" ]]; then
+        error "Gen2 API request failed with HTTP ${http_code}: ${body}"
+    fi
+
+    # Validate API response JSON
+    if ! jq -e . >/dev/null 2>&1 <<< "$body"; then
+        error "Invalid JSON response from Gen2 API"
+    fi
+
+    # Validate expected response structure
+    if ! jq -e '
+        has("metadata") and
+        (.metadata | has("other")) and
+        (.metadata.other | has("versions")) and
+        (.metadata.other.versions | type == "array")
+    ' >/dev/null 2>&1 <<< "$body"; then
+        error "Gen2 API response missing expected 'metadata.other.versions' array"
+    fi
+
+    echo "$body"
 }
 
 # Function to transform data and extract versions
@@ -208,6 +287,50 @@ transform_data() {
     echo "$versions|$preferred_version|$latest_version"
 }
 
+# Function to transform Gen2 data and extract versions
+transform_gen2_data() {
+    local gen2_data="$1"
+
+    local versions
+    local preferred_version
+    local latest_version
+
+    # Extract valid versions from Gen2 response
+    versions=$(jq -c '
+        [
+            .metadata.other.versions[]
+            | select(.status != "dead" and .status != "hidden")
+            | .version
+        ]
+    ' <<< "$gen2_data")
+
+    # Extract preferred version
+    preferred_version=$(jq -r '
+        .metadata.other.versions[]
+        | select(
+            .status != "dead"
+            and .status != "hidden"
+            and .is_preferred == true
+        )
+        | .version
+    ' <<< "$gen2_data" | head -n1)
+
+    preferred_version="${preferred_version:-}"
+
+    # Determine latest version
+    if [[ "$versions" != "[]" ]]; then
+        latest_version=$(
+            jq -r '.[]' <<< "$versions" \
+            | sort -V \
+            | tail -n1
+        )
+    else
+        latest_version=""
+    fi
+
+    echo "$versions|$preferred_version|$latest_version"
+}
+
 # Function to format output for Terraform
 format_for_terraform() {
     local versions="$1"
@@ -242,24 +365,32 @@ main() {
     local iam_token
     local region
     local db_type
+    local plan
+    local service
 
-    IFS='|' read -r iam_token region db_type <<< "$validated"
-
-    # Get API endpoint
-    local api_endpoint
-    api_endpoint=$(get_api_endpoint "$region")
-
-    # Fetch deployables data
-    local deployables_data
-    deployables_data=$(fetch_with_fallback "$iam_token" "$region")
-
-    # Transform data
-    local transformed
-    transformed=$(transform_data "$deployables_data" "$db_type")
+    IFS='|' read -r iam_token region db_type plan service <<< "$validated"
 
     local versions
     local preferred_version
     local latest_version
+    local transformed
+
+    # Determine if this is Gen2 by checking if plan ends with '-gen2' suffix
+    if [[ -n "$plan" && "$plan" =~ -gen2$ ]]; then
+        # Gen2 database - use Global Catalog API
+        # Validate that service is also provided for Gen2
+        if [[ -z "$service" ]]; then
+            error "SERVICE is required when using Gen2 plan (plan ending with '-gen2')"
+        fi
+
+        local gen2_data
+        gen2_data=$(fetch_gen2_versions "$iam_token" "$service" "$plan" "$region")
+        transformed=$(transform_gen2_data "$gen2_data")
+    else
+        local deployables_data
+        deployables_data=$(fetch_with_fallback "$iam_token" "$region")
+        transformed=$(transform_data "$deployables_data" "$db_type")
+    fi
 
     IFS='|' read -r versions preferred_version latest_version <<< "$transformed"
 

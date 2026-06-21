@@ -4,6 +4,11 @@ This terraform module uses an external data block to call the ICD API endpoint u
 
 ## Features
 
+The module supports both **Gen1** and **Gen2** IBM Cloud Databases:
+- **Gen1**: Uses the ICD API endpoint (`https://api.{region}.databases.cloud.ibm.com/v5/ibm/deployables`)
+- **Gen2**: Uses the Global Catalog API endpoint (`https://globalcatalog.cloud.ibm.com/api/v1/{service}-{plan}:{region}`)
+  - Gen2 is detected automatically when the `plan` parameter ends with `-gen2` suffix
+
 - **Automatic Fallback for ca-mon Region**: Since the Montreal (`ca-mon`) regional endpoint is unavailable (e.g., `api.ca-mon.databases.cloud.ibm.com`), the module automatically attempts to fetch data from fallback regions in the following priority order:
   1. `ca-tor` (Toronto)
   2. `us-south` (Dallas)
@@ -22,6 +27,8 @@ Ensure `curl` and `jq` are available in the environment where Terraform runs.
 
 ## Usage
 
+### Gen1 Databases (Legacy)
+
 ```hcl
 provider "ibm" {
   ibmcloud_api_key = "xxx123xxxxx" # Provide valid IBM Cloud API key.
@@ -34,6 +41,27 @@ module "icd_versions" {
   region   = "us-south" # Replace with the region in which you are trying to deploy the ICD
 }
 ```
+
+### Gen2 Databases
+
+For Gen2 databases, you must provide both `plan` (with `-gen2` suffix) and `service` parameters:
+
+```hcl
+provider "ibm" {
+  ibmcloud_api_key = "xxx123xxxxx" # Provide valid IBM Cloud API key.
+}
+
+module "icd_versions_gen2" {
+  source   = "terraform-ibm-modules/common-utilities/ibm//modules/icd-versions"
+  version  = "X.Y.Z"                           # Replace "X.Y.Z" to lock into a specific release
+  icd_type = "postgresql"                      # Database type
+  region   = "us-south"                        # Region
+  plan     = "standard-gen2"                   # Gen2 plan - MUST end with '-gen2' suffix
+  service  = "databases-for-postgresql"        # Gen2 service name
+}
+```
+
+**Note**: The `plan` parameter MUST end with `-gen2` suffix for Gen2 databases. This is how the module detects whether to use Gen1 or Gen2 API.
 
 ### Required IAM access policies
 
@@ -77,7 +105,9 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_icd_type"></a> [icd\_type](#input\_icd\_type) | The type of the ICD. | `string` | n/a | yes |
+| <a name="input_plan"></a> [plan](#input\_plan) | The plan for Gen2 databases (e.g., 'standard-gen2', 'enterprise-gen2'). Must end with '-gen2' suffix for Gen2 databases. Leave empty for Gen1. Note: For Gen2 databases, only the 'ca-mon' region is currently supported and only for PostgreSQL and MongoDB. | `string` | `""` | no |
 | <a name="input_region"></a> [region](#input\_region) | The region in which you want to list the supported versions of an ICD. | `string` | n/a | yes |
+| <a name="input_service"></a> [service](#input\_service) | The service name for Gen2 databases (e.g., 'databases-for-postgresql'). Required for Gen2 databases, leave empty for Gen1. | `string` | `""` | no |
 
 ### Outputs
 

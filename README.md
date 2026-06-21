@@ -53,6 +53,10 @@ You can reference any utility in this repo from your Terraform project by pointi
         <a href="https://cloud.ibm.com/schematics/workspaces/create?workspace_name=common-utilities-icd-version-lister-example&repository=https://github.com/terraform-ibm-modules/terraform-ibm-common-utilities/tree/main/examples/icd-version-lister"><img src="https://img.shields.io/badge/Deploy%20with%20IBM%20Cloud%20Schematics-0f62fe?style=flat&logo=ibm&logoColor=white&labelColor=0f62fe" alt="Deploy with IBM Cloud Schematics" style="height: 16px; vertical-align: text-bottom; margin-left: 5px;"></a>
       </li>
       <li>
+        <a href="./examples/icd-version-lister-gen2">ICD Version Lister</a>
+        <a href="https://cloud.ibm.com/schematics/workspaces/create?workspace_name=common-utilities-icd-version-lister-gen2-example&repository=https://github.com/terraform-ibm-modules/terraform-ibm-common-utilities/tree/main/examples/icd-version-lister-gen2"><img src="https://img.shields.io/badge/Deploy%20with%20IBM%20Cloud%20Schematics-0f62fe?style=flat&logo=ibm&logoColor=white&labelColor=0f62fe" alt="Deploy with IBM Cloud Schematics" style="height: 16px; vertical-align: text-bottom; margin-left: 5px;"></a>
+      </li>
+      <li>
         <a href="./examples/vsi-image-selector">VSI image selector example</a>
         <a href="https://cloud.ibm.com/schematics/workspaces/create?workspace_name=common-utilities-vsi-image-selector-example&repository=https://github.com/terraform-ibm-modules/terraform-ibm-common-utilities/tree/main/examples/vsi-image-selector"><img src="https://img.shields.io/badge/Deploy%20with%20IBM%20Cloud%20Schematics-0f62fe?style=flat&logo=ibm&logoColor=white&labelColor=0f62fe" alt="Deploy with IBM Cloud Schematics" style="height: 16px; vertical-align: text-bottom; margin-left: 5px;"></a>
       </li>

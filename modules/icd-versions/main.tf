@@ -7,12 +7,14 @@ data "external" "icd_versions" {
     IAM_TOKEN = sensitive(data.ibm_iam_auth_token.tokendata.iam_access_token)
     REGION    = var.region
     DB_TYPE   = var.icd_type
+    PLAN      = var.plan
+    SERVICE   = var.service
   }
 
   lifecycle {
     postcondition {
       condition     = length(jsondecode(self.result["versions"])) > 0
-      error_message = "No supported versions found for ICD ${var.icd_type}."
+      error_message = "No supported versions found for ICD ${var.icd_type}. The plan might not be supported yet in region '${var.region}'."
     }
   }
 }
