@@ -15,7 +15,7 @@ This example demonstrates how to use the `icd-flavors` module to dynamically fet
 ## Overview
 
 The example shows how to:
-- Fetch all available flavors for a specific ICD type in a region
+- Fetch all available flavors for a specific ICD service in a region
 - Get the default/recommended flavor
 - Use these values in your ICD deployments
 
@@ -64,14 +64,14 @@ default_flavor = "4x20"
 |------|-------------|------|---------|:--------:|
 | ibmcloud_api_key | The IBM Cloud API Key | `string` | n/a | yes |
 | region | Region where the ICD will be deployed | `string` | `"ca-mon"` | no |
-| icd_type | The type of ICD service (e.g., mongodb, redis, postgresql) | `string` | `"mongodb"` | no |
+| service | The catalog service name for the ICD (e.g., databases-for-mongodb-standard-gen2) | `string` | `"databases-for-mongodb-standard-gen2"` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| available_flavors | List of all available flavors for the specified ICD type in the region |
-| default_flavor | Default/recommended flavor for the specified ICD type |
+| available_flavors | List of all available flavors for the specified ICD service in the region |
+| default_flavor | Default/recommended flavor for the specified ICD service |
 
 ## Using the Output in ICD Resources
 
@@ -79,10 +79,10 @@ You can use the output from this module in your ICD resource definitions:
 
 ```hcl
 module "icd_flavors" {
-  source   = "terraform-ibm-modules/common-utilities/ibm//modules/icd-flavors"
-  version  = "X.Y.Z"
-  icd_type = "mongodb"
-  region   = "ca-mon"
+  source  = "terraform-ibm-modules/common-utilities/ibm//modules/icd-flavors"
+  version = "X.Y.Z"
+  service = "databases-for-mongodb-standard-gen2"
+  region  = "ca-mon"
 }
 
 resource "ibm_database" "mongodb_instance" {
@@ -110,5 +110,16 @@ resource "ibm_database" "mongodb_instance" {
 ## Notes
 
 - This module is designed for Gen2 (VPC) ICD services
+- The `service` parameter should be the full catalog service name (e.g., `databases-for-mongodb-standard-gen2`)
 - Requires network connectivity to IBM Cloud Global Catalog API
 - The bash script requires `curl` and `jq` to be installed
+
+## Available Service Names
+
+Common Gen2 ICD service names include:
+- `databases-for-mongodb-standard-gen2`
+- `databases-for-postgresql-standard-gen2`
+- `databases-for-redis-standard-gen2`
+- `databases-for-elasticsearch-standard-gen2`
+- `databases-for-etcd-standard-gen2`
+- `databases-for-rabbitmq-standard-gen2`

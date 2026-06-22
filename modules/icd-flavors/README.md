@@ -20,10 +20,10 @@ provider "ibm" {
 }
 
 module "icd_flavors" {
-  source   = "terraform-ibm-modules/common-utilities/ibm//modules/icd-flavors"
-  version  = "X.Y.Z"    # Replace "X.Y.Z" to lock into a specific release
-  icd_type = "mongodb"  # Replace with the ICD type of which you want to get the flavors
-  region   = "ca-mon"   # Replace with the region in which you are trying to deploy the ICD
+  source  = "terraform-ibm-modules/common-utilities/ibm//modules/icd-flavors"
+  version = "X.Y.Z" # Replace "X.Y.Z" to lock into a specific release
+  service = "databases-for-mongodb-standard-gen2"
+  region  = "ca-mon"
 }
 
 # Use the output in your ICD resource
@@ -97,8 +97,8 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_icd_type"></a> [icd\_type](#input\_icd\_type) | The type of the ICD (e.g. postgresql, mongodb). | `string` | n/a | yes |
 | <a name="input_region"></a> [region](#input\_region) | The region in which you want to list the supported flavors of an ICD. | `string` | n/a | yes |
+| <a name="input_service"></a> [service](#input\_service) | The catalog service name for the ICD (e.g., databases-for-mongodb-standard-gen2, databases-for-postgresql-standard-gen2). | `string` | n/a | yes |
 
 ### Outputs
 

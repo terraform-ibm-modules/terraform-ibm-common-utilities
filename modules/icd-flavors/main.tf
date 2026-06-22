@@ -6,13 +6,13 @@ data "external" "icd_flavors" {
   query = {
     IAM_TOKEN = sensitive(data.ibm_iam_auth_token.tokendata.iam_access_token)
     REGION    = var.region
-    DB_TYPE   = var.icd_type
+    SERVICE   = var.service
   }
 
   lifecycle {
     postcondition {
       condition     = length(jsondecode(self.result["flavors"])) > 0
-      error_message = "No flavors found for ICD ${var.icd_type} in region ${var.region}."
+      error_message = "No flavors found for service ${var.service} in region ${var.region}."
     }
   }
 }

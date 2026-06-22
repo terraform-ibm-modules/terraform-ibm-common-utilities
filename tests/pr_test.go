@@ -131,12 +131,12 @@ func TestIcdVersionListerGen2(t *testing.T) {
 
 }
 
-func testIcdFlavorSelector(t *testing.T, icd_type string, region string) {
+func testIcdFlavorSelector(t *testing.T, service string, region string) {
 
 	options := setupOptions(t, icdFlavorSelectorExample)
 	options.TerraformVars = map[string]interface{}{
-		"region":   region,
-		"icd_type": icd_type,
+		"region":  region,
+		"service": service,
 	}
 
 	output, err := options.RunTestConsistency()
@@ -167,6 +167,6 @@ func TestIcdFlavorSelector(t *testing.T) {
 	t.Parallel()
 
 	// Only test MongoDB as it has Gen2 support in ca-mon
-	// The module is general and works for any ICD type/region, but Gen2 is limited
-	testIcdFlavorSelector(t, "mongodb", "ca-mon")
+	// The module is general and works for any service/region, but Gen2 is limited
+	testIcdFlavorSelector(t, "databases-for-mongodb-standard-gen2", "ca-mon")
 }

@@ -3,7 +3,7 @@
 ##############################################################################
 
 module "icd_flavors" {
-  source   = "../../modules/icd-flavors"
-  icd_type = var.icd_type
-  region   = var.region
+  source  = "../../modules/icd-flavors"
+  service = var.service
+  region  = var.region
 }

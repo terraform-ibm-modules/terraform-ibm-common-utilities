@@ -29,7 +29,7 @@ validate_inputs() {
     local data="$1"
     local token
     local region
-    local db_type
+    local service
 
     token=$(jq -r '.IAM_TOKEN // empty' <<< "$data")
     [[ -z "$token" ]] && error "IAM_TOKEN is required"
@@ -37,13 +37,13 @@ validate_inputs() {
     region=$(jq -r '.REGION // empty' <<< "$data")
     [[ -z "$region" ]] && error "REGION is required"
 
-    db_type=$(jq -r '.DB_TYPE // empty' <<< "$data")
-    [[ -z "$db_type" ]] && error "DB_TYPE is required"
+    service=$(jq -r '.SERVICE // empty' <<< "$data")
+    [[ -z "$service" ]] && error "SERVICE is required"
 
     # Remove optional Bearer prefix
     token="${token#Bearer }"
 
-    echo "$token|$region|$db_type"
+    echo "$token|$region|$service"
 }
 
 # Function to map IBM Cloud region to catalog region code
@@ -71,16 +71,16 @@ map_region_to_catalog_code() {
 
 # Function to construct catalog service name with region
 get_catalog_service_name() {
-    local db_type="$1"
+    local service="$1"
     local region="$2"
 
     # Map region to catalog code
     local catalog_region
     catalog_region=$(map_region_to_catalog_code "$region")
 
-    # Map ICD type to catalog service name with region
-    # Format: databases-for-{type}-standard-gen2:{catalog_region}
-    echo "databases-for-${db_type}-standard-gen2:${catalog_region}"
+    # Append region to service name
+    # Format: {service}:{catalog_region}
+    echo "${service}:${catalog_region}"
 }
 
 # Function to fetch ICD flavors from catalog
@@ -187,13 +187,13 @@ main() {
 
     local iam_token
     local region
-    local db_type
+    local service
 
-    IFS='|' read -r iam_token region db_type <<< "$validated"
+    IFS='|' read -r iam_token region service <<< "$validated"
 
     # Get catalog service name with region
     local service_name_with_region
-    service_name_with_region=$(get_catalog_service_name "$db_type" "$region")
+    service_name_with_region=$(get_catalog_service_name "$service" "$region")
 
     # Fetch catalog data
     local catalog_data

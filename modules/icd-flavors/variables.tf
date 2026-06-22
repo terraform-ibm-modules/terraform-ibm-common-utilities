@@ -7,7 +7,7 @@ variable "region" {
   description = "The region in which you want to list the supported flavors of an ICD."
 }
 
-variable "icd_type" {
+variable "service" {
   type        = string
-  description = "The type of the ICD (e.g. postgresql, mongodb)."
+  description = "The catalog service name for the ICD (e.g., databases-for-mongodb-standard-gen2, databases-for-postgresql-standard-gen2)."
 }

@@ -14,8 +14,8 @@ variable "region" {
   default     = "ca-mon"
 }
 
-variable "icd_type" {
+variable "service" {
   type        = string
-  description = "The type of ICD service (e.g., mongodb, redis, postgresql)"
-  default     = "mongodb"
+  description = "The catalog service name for the ICD (e.g., databases-for-mongodb-standard-gen2)"
+  default     = "databases-for-mongodb-standard-gen2"
 }
