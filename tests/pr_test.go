@@ -14,6 +14,7 @@ const crnParserExample = "examples/crn-parser"
 const getImagesExample = "examples/vsi-image-selector"
 const icdVersionListerExample = "examples/icd-version-lister"
 const icdVersionListerExampleGen2 = "examples/icd-version-lister-gen2"
+const icdFlavorSelectorExample = "examples/icd-flavor-selector"
 
 var validRegions = []string{
 	"us-south",
@@ -128,4 +129,45 @@ func TestIcdVersionListerGen2(t *testing.T) {
 		assert.NotEmpty(t, preferredVersion, "preferredVersion can't be empty")
 	}
 
+}
+
+func testIcdFlavorSelector(t *testing.T, service string, plan string, region string) {
+
+	options := setupOptions(t, icdFlavorSelectorExample)
+	options.TerraformVars = map[string]interface{}{
+		"region":  region,
+		"service": service,
+		"plan":    plan,
+	}
+
+	output, err := options.RunTestConsistency()
+	assert.Nil(t, err, "This should not have errored")
+	assert.NotNil(t, output, "Expected some output")
+
+	if output != nil {
+		defaultFlavor := output.RawPlan.OutputChanges["default_flavor"].After.(string)
+		availableFlavors := output.RawPlan.OutputChanges["available_flavors"].After.([]interface{})
+
+		assert.NotEmpty(t, defaultFlavor, "defaultFlavor can't be empty")
+		assert.NotEmpty(t, availableFlavors, "availableFlavors can't be empty")
+		assert.Greater(t, len(availableFlavors), 0, "Should have at least one available flavor")
+
+		// Verify default flavor is in the available flavors list
+		flavorFound := false
+		for _, flavor := range availableFlavors {
+			if flavor.(string) == defaultFlavor {
+				flavorFound = true
+				break
+			}
+		}
+		assert.True(t, flavorFound, "Default flavor should be in the available flavors list")
+	}
+}
+
+func TestIcdFlavorSelector(t *testing.T) {
+	t.Parallel()
+
+	// Only test MongoDB as it has Gen2 support in ca-mon
+	// The module is general and works for any service/region, but Gen2 is limited
+	testIcdFlavorSelector(t, "databases-for-mongodb", "standard-gen2", "ca-mon")
 }
