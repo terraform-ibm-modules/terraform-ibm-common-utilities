@@ -15,7 +15,7 @@ This example demonstrates how to use the `icd-flavors` module to dynamically fet
 ## Overview
 
 The example shows how to:
-- Fetch all available flavors for a specific ICD service in a region
+- Fetch all available flavors for a specific ICD service and plan in a region
 - Get the default/recommended flavor
 - Use these values in your ICD deployments
 
@@ -64,7 +64,8 @@ default_flavor = "4x20"
 |------|-------------|------|---------|:--------:|
 | ibmcloud_api_key | The IBM Cloud API Key | `string` | n/a | yes |
 | region | Region where the ICD will be deployed | `string` | `"ca-mon"` | no |
-| service | The catalog service name for the ICD (e.g., databases-for-mongodb-standard-gen2) | `string` | `"databases-for-mongodb-standard-gen2"` | no |
+| service | The ICD service name (e.g., databases-for-mongodb, databases-for-postgresql) | `string` | `"databases-for-mongodb"` | no |
+| plan | The ICD plan (e.g., standard-gen2, enterprise-gen2) | `string` | `"standard-gen2"` | no |
 
 ## Outputs
 
@@ -81,7 +82,8 @@ You can use the output from this module in your ICD resource definitions:
 module "icd_flavors" {
   source  = "terraform-ibm-modules/common-utilities/ibm//modules/icd-flavors"
   version = "X.Y.Z"
-  service = "databases-for-mongodb-standard-gen2"
+  service = "databases-for-mongodb"
+  plan    = "standard-gen2"
   region  = "ca-mon"
 }
 
@@ -110,16 +112,24 @@ resource "ibm_database" "mongodb_instance" {
 ## Notes
 
 - This module is designed for Gen2 (VPC) ICD services
-- The `service` parameter should be the full catalog service name (e.g., `databases-for-mongodb-standard-gen2`)
+- The `service` parameter should be the ICD service name (e.g., `databases-for-mongodb`)
+- The `plan` parameter should be the plan type (e.g., `standard-gen2`, `enterprise-gen2`)
+- The module concatenates service and plan to form the catalog service name
 - Requires network connectivity to IBM Cloud Global Catalog API
 - The bash script requires `curl` and `jq` to be installed
 
 ## Available Service Names
 
 Common Gen2 ICD service names include:
-- `databases-for-mongodb-standard-gen2`
-- `databases-for-postgresql-standard-gen2`
-- `databases-for-redis-standard-gen2`
-- `databases-for-elasticsearch-standard-gen2`
-- `databases-for-etcd-standard-gen2`
-- `databases-for-rabbitmq-standard-gen2`
+- `databases-for-mongodb`
+- `databases-for-postgresql`
+- `databases-for-redis`
+- `databases-for-elasticsearch`
+- `databases-for-etcd`
+- `databases-for-rabbitmq`
+
+## Available Plans
+
+Common ICD plans include:
+- `standard-gen2` - Standard Gen2 plan for VPC
+- `enterprise-gen2` - Enterprise Gen2 plan for VPC

@@ -9,5 +9,11 @@ variable "region" {
 
 variable "service" {
   type        = string
-  description = "The catalog service name for the ICD (e.g., databases-for-mongodb-standard-gen2, databases-for-postgresql-standard-gen2)."
+  description = "The ICD service name (e.g., databases-for-mongodb, databases-for-postgresql)."
+}
+
+variable "plan" {
+  type        = string
+  description = "The ICD plan (e.g., standard-gen2, enterprise-gen2)."
+  default     = "standard-gen2"
 }

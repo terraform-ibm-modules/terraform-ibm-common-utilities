@@ -7,6 +7,7 @@ data "external" "icd_flavors" {
     IAM_TOKEN = sensitive(data.ibm_iam_auth_token.tokendata.iam_access_token)
     REGION    = var.region
     SERVICE   = var.service
+    PLAN      = var.plan
   }
 
   lifecycle {

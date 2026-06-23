@@ -22,7 +22,8 @@ provider "ibm" {
 module "icd_flavors" {
   source  = "terraform-ibm-modules/common-utilities/ibm//modules/icd-flavors"
   version = "X.Y.Z" # Replace "X.Y.Z" to lock into a specific release
-  service = "databases-for-mongodb-standard-gen2"
+  service = "databases-for-mongodb"
+  plan    = "standard-gen2"
   region  = "ca-mon"
 }
 
@@ -51,9 +52,11 @@ resource "ibm_database" "example" {
 
 ## Important Notes
 
-- This module is designed for **Gen2 (VPC) ICD services** which use the `databases-for-{type}-standard-gen2` catalog naming convention
+- This module is designed for **Gen2 (VPC) ICD services**
+- The `service` parameter should be the ICD service name (e.g., `databases-for-mongodb`) and `plan` should be the plan type (e.g., `standard-gen2`)
+- The module concatenates service and plan to form the catalog service name: `{service}-{plan}`
 - Classic ICD services may have different catalog structures and are not currently supported
-- The module fetches flavors from the IBM Cloud Global Catalog API endpoint: `https://globalcatalog.cloud.ibm.com/api/v1/{service}:{region}`
+- The module fetches flavors from the IBM Cloud Global Catalog API endpoint: `https://globalcatalog.cloud.ibm.com/api/v1/{service}-{plan}:{region}`
 - **Regional Availability**: Gen2 ICD services have limited regional availability. Not all ICD types are available in all regions. For example, Gen2 MongoDB is currently only available in Montreal (`ca-mon`). If you specify an unsupported region, the module will fail with a clear error message indicating the catalog entry was not found.
 
 ### Required IAM access policies
@@ -97,8 +100,9 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_plan"></a> [plan](#input\_plan) | The ICD plan (e.g., standard-gen2, enterprise-gen2). | `string` | `"standard-gen2"` | no |
 | <a name="input_region"></a> [region](#input\_region) | The region in which you want to list the supported flavors of an ICD. | `string` | n/a | yes |
-| <a name="input_service"></a> [service](#input\_service) | The catalog service name for the ICD (e.g., databases-for-mongodb-standard-gen2, databases-for-postgresql-standard-gen2). | `string` | n/a | yes |
+| <a name="input_service"></a> [service](#input\_service) | The ICD service name (e.g., databases-for-mongodb, databases-for-postgresql). | `string` | n/a | yes |
 
 ### Outputs
 
