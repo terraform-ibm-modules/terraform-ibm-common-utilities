@@ -21,7 +21,7 @@ No permissions are needed to run this module.
 ### Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.9.0 |
 
 ### Modules
@@ -35,13 +35,13 @@ No resources.
 ### Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_crn"></a> [crn](#input\_crn) | The CRN to parse. | `string` | n/a | yes |
 
 ### Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_account_id"></a> [account\_id](#output\_account\_id) | Account ID parsed from the CRN `scope` field |
 | <a name="output_ctype"></a> [ctype](#output\_ctype) | CRN `ctype` field |
 | <a name="output_region"></a> [region](#output\_region) | CRN `region` field |
