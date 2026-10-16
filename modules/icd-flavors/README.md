@@ -80,7 +80,7 @@ resource "ibm_database" "example" {
 ### Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.9.0 |
 | <a name="requirement_external"></a> [external](#requirement\_external) | >=2.3.5, <3.0.0 |
 | <a name="requirement_ibm"></a> [ibm](#requirement\_ibm) | >= 1.79.2, < 3.0.0 |
@@ -92,14 +92,14 @@ No modules.
 ### Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [external_external.icd_flavors](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
 | [ibm_iam_auth_token.tokendata](https://registry.terraform.io/providers/ibm-cloud/ibm/latest/docs/data-sources/iam_auth_token) | data source |
 
 ### Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_plan"></a> [plan](#input\_plan) | The ICD plan (e.g., standard-gen2, enterprise-gen2). | `string` | `"standard-gen2"` | no |
 | <a name="input_region"></a> [region](#input\_region) | The region in which you want to list the supported flavors of an ICD. | `string` | n/a | yes |
 | <a name="input_service"></a> [service](#input\_service) | The ICD service name (e.g., databases-for-mongodb, databases-for-postgresql). | `string` | n/a | yes |
@@ -107,7 +107,7 @@ No modules.
 ### Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_available_flavors"></a> [available\_flavors](#output\_available\_flavors) | List of available flavors for the ICD |
 | <a name="output_default_flavor"></a> [default\_flavor](#output\_default\_flavor) | Default/recommended flavor for the ICD |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
