@@ -35,7 +35,7 @@ No permissions are needed to run this module.
 ### Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.9.0 |
 | <a name="requirement_ibm"></a> [ibm](#requirement\_ibm) | >= 1.84.3, < 3.0.0 |
 
@@ -46,13 +46,13 @@ No modules.
 ### Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [ibm_is_images.available_images](https://registry.terraform.io/providers/ibm-cloud/ibm/latest/docs/data-sources/is_images) | data source |
 
 ### Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_architecture"></a> [architecture](#input\_architecture) | Defines the target system architecture for image selection. The default is `amd64`. Valid options are `amd64` and `s390x`. | `string` | `"amd64"` | no |
 | <a name="input_image_status"></a> [image\_status](#input\_image\_status) | Optional value to provide status of the image. | `string` | `"available"` | no |
 | <a name="input_is_catalog_managed"></a> [is\_catalog\_managed](#input\_is\_catalog\_managed) | Flag to get images which are managed as part of a catalog offering. | `bool` | `false` | no |
@@ -63,7 +63,7 @@ No modules.
 ### Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_filtered_image_names"></a> [filtered\_image\_names](#output\_filtered\_image\_names) | List of image names that matches both the specified operating system and architecture. |
 | <a name="output_latest_image_id"></a> [latest\_image\_id](#output\_latest\_image\_id) | Id of the most recent image matching the specified operating system and architecture. |
 | <a name="output_latest_image_name"></a> [latest\_image\_name](#output\_latest\_image\_name) | Name of the most recent image matching the specified operating system and architecture. |

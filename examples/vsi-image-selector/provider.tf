@@ -2,10 +2,8 @@
 # Provider config
 ########################################################################################################################
 
-/*
-As the image IDs differ per region so provider region usage
-is very important to get correct results.
-*/
+# As the image IDs differ per region so provider region usage
+# is very important to get correct results.
 
 provider "ibm" {
   region           = var.region
